@@ -56,7 +56,7 @@ namespace TFTGraph {
         while (msg.indexOf("\t") >= 0) msg = msg.replace("\t", " ")
 
         if (msg.length > 20) {
-            msg = msg.substring(0, 20)
+            msg = msg.substr(0, 20)
         }
 
         RBTFT20.drawRectangle(0, 0, W, STATUS_H - 3, Color.Black)

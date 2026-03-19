@@ -32,7 +32,7 @@ namespace ESP32UART {
 
         if (s.indexOf("[ESP->MB] ") == 0) {
             s = s.substr(10)
-        } else if (s.indexOf("[ESP->MB] ") == 0) {
+        } else if (s.indexOf("[ESP->MB-STATE] ") == 0) {
             s = s.substr(16)
         }
 
