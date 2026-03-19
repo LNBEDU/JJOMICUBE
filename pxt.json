@@ -1,0 +1,22 @@
+{
+    "name": "JJOMICUBE",
+    "description": "JJOMICUBE (LCD, NeoPixel, ADS1115, ESP32)",
+    "dependencies": {
+        "core": "*",
+        "neopixel": "github:microsoft/pxt-neopixel"
+    },
+    "files": [
+        "LNBJJOMICUBE.ts",
+        "ESP32UART.ts",
+        "JJOADS1115.ts",
+        "JJONeo.ts",
+        "RBTFT20.ts",
+        "TFTGraph.ts",
+        "TFTFont.ts"
+    ],
+    "testFiles": [
+        "test.ts"
+    ],
+    "public": true,
+    "license": "MIT"
+}
