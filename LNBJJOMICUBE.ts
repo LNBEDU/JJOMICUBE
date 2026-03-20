@@ -10,18 +10,16 @@ namespace JJOMICUBE {
      * @param ledCount LED 개수 (기본 12), eg: 12
      * @param brightness 초기 밝기 (0-255), eg: 40
      */
-    //% block="쪼미큐브 시작 LED $ledCount 개 밝기 $brightness"
-    //% ledCount.min=1 ledCount.max=64 ledCount.defl=12
-    //% brightness.min=0 brightness.max=255 brightness.defl=40
+    //% block="쪼미큐브 시작"
     //% weight=100
-    export function start(ledCount: number, brightness: number): void {
+    export function start(): void {
         // 1. LCD 초기화 (TFTGraph 내부 layoutCommon 호출)
         // TFTGraph 패키지 내부에 layoutCommon을 export로 수정하거나 
         // 여기서 직접 초기화 로직을 수행합니다.
         TFTGraph.drawStatus("System Ready", Color.Green);
         
         // 2. 네오픽셀 초기화
-        JJONeo.init(ledCount, brightness);
+        JJONeo.init(12, 40);
         
         // 3. 시작 알림 (LCD & LED 시너지)
         JJONeo.rainbow();

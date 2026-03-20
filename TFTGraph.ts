@@ -38,6 +38,10 @@ namespace TFTGraph {
     let lastReset = 0, tick = 0
     const TEXT_EVERY = 6
 
+    let dataHistory1: number[] = []
+    let dataHistory2: number[] = []
+    let maxDataPoints = 150 // 화면 가로폭에 맞춰 조정 (gw / _thickness)
+
     function idiv(a: number, b: number): number {
         return (a / b) >> 0
     }
@@ -141,10 +145,6 @@ namespace TFTGraph {
     //% block="그래프 업데이트"
     //% weight=80
     // 상단에 데이터를 담을 배열 변수 추가 필요 (전역 변수 영역)
-    let dataHistory1: number[] = []
-    let dataHistory2: number[] = []
-    let maxDataPoints = 150 // 화면 가로폭에 맞춰 조정 (gw / _thickness)
-
     export function update() {
         if (!_started) return
 

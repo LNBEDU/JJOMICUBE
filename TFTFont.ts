@@ -5,7 +5,7 @@ namespace TFTFont {
     // 상태 아이콘 변수
     // ==============================
     
-    let iconOnColor = Color.Blue
+    let iconOnColor = Color.DarkGreen
     let iconOffColor = Color.DarkGrey
     let iconBgColor = Color.Black
 
