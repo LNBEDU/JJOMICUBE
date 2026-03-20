@@ -17,6 +17,7 @@ namespace JJOMICUBE {
         
         RBTFT20.init()
         RBTFT20.clearScreen()
+        basic.pause(500);
 
         TFTGraph.drawStatus("System Ready", Color.Green);
         
