@@ -97,30 +97,36 @@ namespace ESP32UART {
     //% block="connect Wi-Fi ssid $ssid password $password"
     //% weight=90
     export function connectWifi(ssid: string, password: string): void {
+        // 1. 초기 상태 설정
         wifiConnected = false
 
+        // 2. AT 명령 전송
         sendATWaitOK("AT")
         sendATWaitOK("AT+CWMODE=1")
-        sendATWaitOK("AT+CWJAP=\"" + ssid + "\",\"" + password + "\"\r\n")
+        sendATWaitOK("AT+CWJAP=\"" + ssid + "\",\"" + password + "\"")
 
+        // 3. 타임아웃 설정 (20초)
         let timeout = input.runningTime() + 20000
 
-         // 현재 상태 업데이트 시도 (이미 연결되었을 수도 있으므로)
+        TFTGraph.drawStatus("WIFI CONNECTING...", Color.DarkGreen)
 
+        // 4. 연결될 때까지 대기 루프
         while (input.runningTime() < timeout) {
+            // 시리얼 응답을 분석하여 wifiConnected 변수 갱신
             updateConnectionStatus(lastLine)
+
+            // 비교 연산자 '='를 사용해야 합니다!
             if (wifiConnected = true) {
-                TFTGraph.drawStatus("WIFI CONNECTED", Color.Green)
-                return
+                TFTGraph.drawStatus("WIFI CONNECTED", Color.DarkGreen)
+                return // 연결 성공 시 함수 종료
             }
 
-            if (wifiConnected = false) {
-                TFTGraph.drawStatus("WIFI ERROR", Color.Red)
-                return
-            }
-
-            basic.pause(200)
+            basic.pause(500) // 너무 자주 체크하기보다 0.5초 정도 여유를 줍니다.
         }
+
+        // 5. 루프를 빠져나왔다는 것은 20초 동안 성공하지 못했다는 뜻 (타임아웃)
+        wifiConnected = false // 최종적으로 실패 처리
+        TFTGraph.drawStatus("WIFI ERROR: TIMEOUT", Color.Red)
     }
 
     /**
