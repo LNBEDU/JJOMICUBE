@@ -59,7 +59,7 @@ namespace TFTGraph {
             msg = msg.slice(0, 20)
         }
 
-        RBTFT20.drawRectangle(0, 0, W, STATUS_H - 3, Color.Black)
+        RBTFT20.drawRectangle(0, 0, 268, STATUS_H - 3, Color.Black)
 
         TFTFont.drawText5x7(
             margin,

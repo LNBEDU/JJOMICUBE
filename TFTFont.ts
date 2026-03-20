@@ -4,9 +4,7 @@ namespace TFTFont {
     // ==============================
     // 상태 아이콘 변수
     // ==============================
-    let wifiConnected = false
-    let btConnected = false
-
+    
     let iconOnColor = Color.Green
     let iconOffColor = Color.DarkGrey
     let iconBgColor = Color.Black
@@ -20,30 +18,6 @@ namespace TFTFont {
         iconBgColor = bgColor
     }
 
-    /**
-     * 와이파이 연결 상태 설정
-     */
-    export function setWifiStatus(connected: boolean): void {
-        wifiConnected = connected
-        drawStatusIcons()
-    }
-
-    /**
-     * 블루투스 연결 상태 설정
-     */
-    export function setBluetoothStatus(connected: boolean): void {
-        btConnected = connected
-        drawStatusIcons()
-    }
-
-    /**
-     * 두 상태를 한 번에 설정
-     */
-    export function setConnectionStatus(wifi: boolean, bluetooth: boolean): void {
-        wifiConnected = wifi
-        btConnected = bluetooth
-        drawStatusIcons()
-    }
 
     /**
      * 정수 나눗셈 대체
@@ -89,13 +63,17 @@ namespace TFTFont {
         RBTFT20.drawRectangle(270, 0, 50, 18, iconBgColor)
 
         // WiFi
-        if (wifiConnected == true) {
+        if (ESP32UART.wifiConnected == true) {
             drawWifiIcon(272, 2, iconOnColor)
+        } else {
+            drawWifiIcon(272, 2, iconOffColor)
         }
 
         // Bluetooth
-        if (btConnected == true) {
+        if (ESP32UART.btConnected == true) {
             drawBluetoothIcon(298, 2, iconOnColor)
+        } else {
+            drawBluetoothIcon(298, 2, iconOffColor)
         }
     }
 
