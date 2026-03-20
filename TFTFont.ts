@@ -60,20 +60,20 @@ namespace TFTFont {
     export function drawStatusIcons(): void {
 
         // 아이콘 영역 배경
-        RBTFT20.drawRectangle(270, 0, 50, TFTGraph.STATUS_H - 3, iconBgColor)
+        RBTFT20.drawRectangle(268, 0, 50, TFTGraph.STATUS_H - 3, iconBgColor)
 
         // WiFi
         if (ESP32UART.wifiConnected == true) {
-            drawWifiIcon(272, 2, iconOnColor)
+            drawWifiIcon(272, 0, iconOnColor)
         } else {
-            drawWifiIcon(272, 2, iconOffColor)
+            drawWifiIcon(272, 0, iconOffColor)
         }
 
         // Bluetooth
         if (ESP32UART.btConnected == true) {
-            drawBluetoothIcon(298, 2, iconOnColor)
+            drawBluetoothIcon(298, 0, iconOnColor)
         } else {
-            drawBluetoothIcon(298, 2, iconOffColor)
+            drawBluetoothIcon(298, 0, iconOffColor)
         }
     }
 
