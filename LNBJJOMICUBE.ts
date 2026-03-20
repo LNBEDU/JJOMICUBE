@@ -7,8 +7,6 @@ namespace JJOMICUBE {
     
     /**
      * LCD와 네오픽셀을 한 번에 초기화합니다.
-     * @param ledCount LED 개수 (기본 12), eg: 12
-     * @param brightness 초기 밝기 (0-255), eg: 40
      */
     //% block="쪼미큐브 시작"
     //% weight=100
