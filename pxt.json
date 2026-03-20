@@ -1,6 +1,7 @@
 {
     "name": "JJOMICUBE",
     "description": "JJOMICUBE (LCD, NeoPixel, ADS1115, ESP32)",
+    "license": "MIT",
     "dependencies": {
         "core": "*",
         "neopixel": "github:microsoft/pxt-neopixel"
@@ -17,6 +18,5 @@
     "testFiles": [
         "test.ts"
     ],
-    "public": true,
-    "license": "MIT"
+    "public": true
 }

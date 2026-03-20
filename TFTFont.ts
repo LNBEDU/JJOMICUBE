@@ -81,17 +81,20 @@ namespace TFTFont {
      * 오른쪽 상단 상태 아이콘 그리기
      * 연결된 경우에만 아이콘 표시
      */
+    //% block="와이파이 블루투스 표시"
+    //% weight=60
     export function drawStatusIcons(): void {
-        // 아이콘 영역 배경 지우기
+
+        // 아이콘 영역 배경
         RBTFT20.drawRectangle(270, 0, 50, 18, iconBgColor)
 
-        // WiFi 연결된 경우만 표시
-        if (wifiConnected) {
+        // WiFi
+        if (wifiConnected == true) {
             drawWifiIcon(272, 2, iconOnColor)
         }
 
-        // Bluetooth 연결된 경우만 표시
-        if (btConnected) {
+        // Bluetooth
+        if (btConnected == true) {
             drawBluetoothIcon(298, 2, iconOnColor)
         }
     }

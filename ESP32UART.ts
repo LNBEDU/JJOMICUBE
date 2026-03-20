@@ -30,10 +30,9 @@ namespace ESP32UART {
     function normalizeLine(src: string): string {
         let s = src.trim()
 
-        // ESP32 디버그 접두사 제거
         if (s.indexOf("[ESP->MB] ") == 0) {
             s = s.substr(10)
-        } else if (s.indexOf("[ESP->MB-STATE] ") == 0) {
+        } else if (s.indexOf("[ESP->MB] ") == 0) {
             s = s.substr(16)
         }
 
@@ -65,7 +64,6 @@ namespace ESP32UART {
         lastLine = rawLine
         lastNormalizedLine = normalizeLine(rawLine)
 
-        // 상태 코드 우선 처리
         if (isWifiSuccessLine(lastNormalizedLine)) {
             setWifiState(true)
             return
@@ -86,10 +84,8 @@ namespace ESP32UART {
             return
         }
 
-        // 일반 로그 표시
         TFTGraph.drawStatus(rawLine, Color.Green)
 
-        // 보조 문자열 처리
         if (containsText(lastNormalizedLine, "BT_BEGIN_FAIL")) {
             btReady = false
             setBtState(false)
@@ -104,6 +100,39 @@ namespace ESP32UART {
         } else if (containsText(lastNormalizedLine, "WIFI DISCONNECT") || containsText(lastNormalizedLine, "WIFI DISCONNECTED")) {
             setWifiState(false)
         }
+    }
+
+    function waitStatus(prefix: string, timeoutMs: number): void {
+        let timeout = input.runningTime() + timeoutMs
+
+        while (input.runningTime() < timeout) {
+            if (containsText(lastNormalizedLine, prefix + ":1")) {
+                if (prefix == "WIFI") {
+                    setWifiState(true)
+                } else {
+                    setBtState(true)
+                }
+                return
+            }
+
+            if (containsText(lastNormalizedLine, prefix + ":0")) {
+                if (prefix == "WIFI") {
+                    setWifiState(false)
+                } else {
+                    setBtState(false)
+                }
+                return
+            }
+
+            basic.pause(50)
+        }
+    }
+
+    function requestStatus(cmd: string, prefix: string): void {
+        lastLine = ""
+        lastNormalizedLine = ""
+        serial.writeString(cmd + "\r\n")
+        waitStatus(prefix, 2000)
     }
 
     /**
@@ -173,14 +202,16 @@ namespace ESP32UART {
         serial.writeString("AT+CWJAP=\"" + ssid + "\",\"" + password + "\"\r\n")
 
         let timeout = input.runningTime() + 20000
+
         while (input.runningTime() < timeout) {
             if (wifiConnected || isWifiSuccessLine(lastNormalizedLine)) {
+                TFTGraph.drawStatus("WIFI CONNECTED", Color.Green)
                 setWifiState(true)
-                basic.showIcon(IconNames.Yes)
                 return
             }
 
             if (isWifiFailLine(lastNormalizedLine) || containsText(lastNormalizedLine, "ERROR")) {
+                TFTGraph.drawStatus("WIFI ERROR", Color.Red)
                 setWifiState(false)
                 return
             }
@@ -210,14 +241,11 @@ namespace ESP32UART {
 
     /**
      * Wi-Fi 상태 확인 요청
-     * ESP32가 WIFI:1 / WIFI:0 응답하면 아이콘까지 자동 반영됨
      */
     //% block="check Wi-Fi status"
     //% weight=87
     export function checkWifiStatus(): void {
-        lastLine = ""
-        lastNormalizedLine = ""
-        serial.writeString("AT+WIFISTATUS?\r\n")
+        requestStatus("AT+WIFISTATUS?", "WIFI")
     }
 
     /**
@@ -245,7 +273,6 @@ namespace ESP32UART {
         serial.writeString(request)
 
         if (waitForResponse("SEND OK", 3000)) {
-            basic.showIcon(IconNames.SmallHeart)
             basic.pause(200)
             basic.clearScreen()
             syncStatusIcons()
@@ -296,14 +323,11 @@ namespace ESP32UART {
 
     /**
      * Bluetooth 상태 확인 요청
-     * ESP32가 BT:1 / BT:0 응답하면 아이콘까지 자동 반영됨
      */
     //% block="check Bluetooth status"
     //% weight=77
     export function checkBluetoothStatus(): void {
-        lastLine = ""
-        lastNormalizedLine = ""
-        serial.writeString("AT+BTSTATUS?\r\n")
+        requestStatus("AT+BTSTATUS?", "BT")
     }
 
     /**
