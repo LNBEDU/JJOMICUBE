@@ -14,9 +14,11 @@ namespace JJOMICUBE {
         // 1. LCD 초기화 (TFTGraph 내부 layoutCommon 호출)
         // TFTGraph 패키지 내부에 layoutCommon을 export로 수정하거나 
         // 여기서 직접 초기화 로직을 수행합니다.
-        TFTGraph.drawStatus("System Ready", Color.Green);
+        
         RBTFT20.init()
         RBTFT20.clearScreen()
+
+        TFTGraph.drawStatus("System Ready", Color.Green);
         
         // 2. 네오픽셀 초기화
         JJONeo.init(12, 40);

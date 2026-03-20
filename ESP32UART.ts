@@ -105,15 +105,13 @@ namespace ESP32UART {
         sendATWaitOK("AT+CWMODE=1")
         sendATWaitOK("AT+CWJAP=\"" + ssid + "\",\"" + password + "\"")
 
+        TFTGraph.drawStatus("WIFI CONNECTING...", Color.DarkGreen)
+
         // 3. 타임아웃 설정 (20초)
         let timeout = input.runningTime() + 20000
 
-        TFTGraph.drawStatus("WIFI CONNECTING...", Color.DarkGreen)
-
         // 4. 연결될 때까지 대기 루프
         while (input.runningTime() < timeout) {
-            // 시리얼 응답을 분석하여 wifiConnected 변수 갱신
-            updateConnectionStatus(lastLine)
 
             // 비교 연산자 '='를 사용해야 합니다!
             if (wifiConnected = true) {
