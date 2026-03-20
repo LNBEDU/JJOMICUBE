@@ -117,7 +117,7 @@ namespace ESP32UART {
             if (wifiConnected = true) {
                 //TFTGraph.drawStatus("WIFI CONNECTED", Color.DarkGreen)
                 return // 연결 성공 시 함수 종료
-            }
+            } else {wifiConnected = false}
 
             basic.pause(500) // 너무 자주 체크하기보다 0.5초 정도 여유를 줍니다.
         }
