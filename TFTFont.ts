@@ -5,7 +5,7 @@ namespace TFTFont {
     // 상태 아이콘 변수
     // ==============================
     
-    let iconOnColor = Color.Green
+    let iconOnColor = Color.Blue
     let iconOffColor = Color.DarkGrey
     let iconBgColor = Color.Black
 
@@ -60,7 +60,7 @@ namespace TFTFont {
     export function drawStatusIcons(): void {
 
         // 아이콘 영역 배경
-        RBTFT20.drawRectangle(270, 0, 50, 18, iconBgColor)
+        RBTFT20.drawRectangle(270, 0, 50, TFTGraph.STATUS_H - 3, iconBgColor)
 
         // WiFi
         if (ESP32UART.wifiConnected == true) {
