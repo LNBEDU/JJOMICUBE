@@ -313,6 +313,7 @@ namespace ESP32UART {
         while (input.runningTime() < timeout) {
             if (containsText(lastLine, "BT:0")) {
                 btConnected = false
+                TFTGraph.drawStatus("BT DISCONNECTED", Color.Red)
                 return
             }
             basic.pause(50)
