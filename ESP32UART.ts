@@ -62,13 +62,7 @@ namespace ESP32UART {
             TFTGraph.drawStatus(lastLine, Color.DarkGreen)
         })
 
-        
-
-        basic.pause(5000);
-        serial.writeString("\r\n")
-
         disconnectWifi()
-        basic.pause(1000);
         sendATWaitOK("AT")
         basic.pause(500);
     }
@@ -144,7 +138,7 @@ namespace ESP32UART {
     //% block="disconnect Wi-Fi"
     //% weight=89
     export function disconnectWifi(): void {
-         serial.writeString("AT+CWQAP\r\n")
+         sendATWaitOK("AT+CWQAP\r\n")
          let timeout = input.runningTime() + 20000
 
          // 현재 상태 업데이트 시도 (이미 연결되었을 수도 있으므로)
