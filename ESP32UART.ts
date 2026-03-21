@@ -93,7 +93,7 @@ namespace ESP32UART {
             serial.writeString(cmd + "\r\n")
             if (containsText(lastLine, "OK")) return
             if (containsText(lastLine, "ERROR")) return
-            basic.pause(50)
+            basic.pause(500)
         }
     }
 
