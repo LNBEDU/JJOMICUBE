@@ -62,7 +62,9 @@ namespace ESP32UART {
         })
 
         disconnectWifi()
+        basic.pause(100);
         syncStatusIcons()
+        basic.pause(100);
         sendATWaitOK("AT")
         basic.pause(100);
     }
@@ -87,7 +89,7 @@ namespace ESP32UART {
         serial.writeString(cmd + "\r\n")
         //basic.pause(500)
 
-        let timeout = input.runningTime() + 10000
+        let timeout = input.runningTime() + 5000
 
         while (input.runningTime() < timeout) {
             if (containsText(lastLine, "OK")) {

@@ -17,17 +17,18 @@ namespace JJOMICUBE {
         
         RBTFT20.init()
         RBTFT20.clearScreen()
-        basic.pause(500);
-
-        TFTGraph.drawStatus("System Ready", Color.Green);
+        basic.pause(500);        
         
         // 2. 네오픽셀 초기화
         JJONeo.init(12, 40);
-        
+
         // 3. 시작 알림 (LCD & LED 시너지)
         JJONeo.rainbow();
         basic.pause(500);
         JJONeo.clear();
+
+        //TFTGraph.drawStatus("System Ready", Color.Green);
+
     }
 
     /**
