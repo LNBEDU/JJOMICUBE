@@ -237,6 +237,26 @@ namespace ESP32UART {
         btConnected = false
         lastLine = ""
         serial.writeString("AT+BTCONNECT=\"" + name + "\"\r\n")
+
+        TFTGraph.drawStatus("BT CONNECTING...", Color.DarkGreen)
+
+        let timeout = input.runningTime() + 20000
+
+        // 4. 연결될 때까지 대기 루프
+        while (input.runningTime() < timeout) {
+
+            // 비교 연산자 '='를 사용해야 합니다!
+            if (btConnected = true) {
+                TFTGraph.drawStatus("BT CONNECTED", Color.DarkGreen)
+                return // 연결 성공 시 함수 종료
+            } else {btConnected = false}
+
+            basic.pause(500) // 너무 자주 체크하기보다 0.5초 정도 여유를 줍니다.
+        }
+
+
+
+
     }
 
     /**
