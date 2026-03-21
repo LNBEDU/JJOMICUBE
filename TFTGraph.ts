@@ -198,6 +198,7 @@ namespace TFTGraph {
     }
 
     function layoutCommon() {
+        RBTFT20.init()
         RBTFT20.drawRectangle(0, 0, W, H, Color.Black)
 
         gx = margin + infoW

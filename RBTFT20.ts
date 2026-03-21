@@ -103,13 +103,13 @@ namespace RBTFT20 {
         sendBuf(TFTCommands.RAMWR, null)
     }
 
-    /**
+       /**
      * Initialize TFT Display (ST7789, SPI MODE3, Landscape 90°)
      * Pins are FIXED: SCK=P13, MOSI=P15, DC=P14
      */
-    //% block="RBTFT20 초기화"
-    //% weight=65
-    export function initRBTFT20(): void {
+    //% block="Initialize TFT"
+    //% weight=100
+    export function init(): void {
         if (_inited) return
 
         // ===== FIXED PINS =====
@@ -142,9 +142,6 @@ namespace RBTFT20 {
         send(TFTCommands.DISPON, [])
         basic.pause(120)
 
-        clearScreen()
-        basic.pause(120)
-
         _inited = true
     }
 
@@ -174,6 +171,7 @@ namespace RBTFT20 {
     //% block="Fill rect x %x y %y w %w h %h color %color"
     //% weight=75
     export function drawRectangle(x: number, y: number, w: number, h: number, color: Color): void {
+        init()
         if (w <= 0 || h <= 0) return
 
         let x1 = x + w - 1
@@ -215,6 +213,7 @@ namespace RBTFT20 {
     //% y.min=0 y.max=239
     //% weight=70
     export function drawPixel(x: number, y: number, color: Color): void {
+        init()
         if (x < 0 || x >= TFTWIDTH || y < 0 || y >= TFTHEIGHT) return
         setWindow(x, y, x, y)
         beginPixels()
@@ -232,6 +231,12 @@ namespace RBTFT20 {
     //% weight=59
     export function height(): number { return TFTHEIGHT }
 
+    // 메인 루프나 별도 함수에서 활용
+    function updateDisplayStatus(status: string, color: Color) {
+    // 상단에 상태 바(Status Bar)처럼 표시 (예: 높이 30픽셀)
+    RBTFT20.drawRectangle(0, 0, 320, 30, color);
+    // 상태에 따라 아이콘이나 문구를 띄우는 로직 추가
+}
 
  
 }
