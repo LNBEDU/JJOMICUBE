@@ -57,9 +57,7 @@ namespace ESP32UART {
 
         disconnectWifi()
         basic.pause(100);
-        syncStatusIcons()
-        basic.pause(100);
-        sendATWaitOK("AT")
+        disconnectBluetooth()
         basic.pause(100);
     }
 
