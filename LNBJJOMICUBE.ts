@@ -27,6 +27,8 @@ namespace JJOMICUBE {
         basic.pause(500);
         JJONeo.clear();
 
+        ESP32UART.initEsp32();
+
         //TFTGraph.drawStatus("System Ready", Color.Green);
 
     }
