@@ -108,7 +108,7 @@ namespace RBTFT20 {
      * Pins are FIXED: SCK=P13, MOSI=P15, DC=P14
      */
     //% block="initRBTFT20"
-    //% weight=100
+    //% weight=65
     export function initRBTFT20(): void {
         if (_inited) return
 
