@@ -146,6 +146,7 @@ namespace ESP32UART {
          sendATWaitOK("AT+CWQAP\r\n")
          wifiConnected = false
          TFTGraph.drawStatus("WIFI DISCONNECTED", Color.Red)
+         basic.pause(500)
          syncStatusIcons()
     }
 
