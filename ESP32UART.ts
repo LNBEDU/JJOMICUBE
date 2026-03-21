@@ -55,12 +55,6 @@ namespace ESP32UART {
         lastLine = ""
         
 
-        serial.onDataReceived(serial.delimiters(Delimiters.NewLine), function () {
-            let rawLine = serial.readUntil(serial.delimiters(Delimiters.NewLine))
-            updateConnectionStatus(rawLine)
-            lastLine = rawLine
-        })
-
         disconnectWifi()
         basic.pause(100);
         syncStatusIcons()
@@ -68,6 +62,9 @@ namespace ESP32UART {
         sendATWaitOK("AT")
         basic.pause(100);
     }
+
+
+
 
     /**
      * Send raw AT command
@@ -86,14 +83,17 @@ namespace ESP32UART {
     //% weight=97
     export function sendATWaitOK(cmd: string): void {
         lastLine = ""
-        serial.writeString(cmd + "\r\n")
+        
         //basic.pause(500)
 
         let timeout = input.runningTime() + 5000
 
         while (input.runningTime() < timeout) {
+            serial.writeString(cmd + "\r\n")
+            let rawLine = serial.readUntil(serial.delimiters(Delimiters.NewLine))
+                updateConnectionStatus(rawLine)
+                lastLine = rawLine
             if (containsText(lastLine, "OK")) {
-                updateConnectionStatus(lastLine)
                 return }
             if (containsText(lastLine, "ERROR")) return
             basic.pause(500)
