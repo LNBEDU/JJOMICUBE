@@ -55,9 +55,9 @@ namespace TFTGraph {
     export function drawStatus(msg: string, color: Color) {
         if (!msg) msg = ""
 
-        while (msg.indexOf("\r") >= 0) msg = msg.replace("\r", " ")
-        while (msg.indexOf("\n") >= 0) msg = msg.replace("\n", " ")
-        while (msg.indexOf("\t") >= 0) msg = msg.replace("\t", " ")
+        //while (msg.indexOf("\r") >= 0) msg = msg.replace("\r", " ")
+        //while (msg.indexOf("\n") >= 0) msg = msg.replace("\n", " ")
+        //while (msg.indexOf("\t") >= 0) msg = msg.replace("\t", " ")
 
         if (msg.length > 20) {
             msg = msg.slice(0, 20)
