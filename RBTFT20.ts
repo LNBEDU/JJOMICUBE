@@ -162,7 +162,7 @@ namespace RBTFT20 {
     //% block="Clear screen"
     //% weight=80
     export function clearScreen(): void {
-        drawRectangle(0, 0, TFTWIDTH, TFTHEIGHT, Color.Black)
+        drawRectangle(0, 23, TFTWIDTH, TFTHEIGHT, Color.Black)
     }
 
     /**
