@@ -84,12 +84,13 @@ namespace ESP32UART {
     //% weight=97
     export function sendATWaitOK(cmd: string): void {
         lastLine = ""
-        serial.writeString(cmd + "\r\n")
+        //serial.writeString(cmd + "\r\n")
         basic.pause(500)
 
         let timeout = input.runningTime() + 5000
 
         while (input.runningTime() < timeout) {
+            serial.writeString(cmd + "\r\n")
             if (containsText(lastLine, "OK")) return
             if (containsText(lastLine, "ERROR")) return
             basic.pause(50)
