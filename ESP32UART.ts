@@ -48,7 +48,7 @@ namespace ESP32UART {
     //% weight=100
     export function initEsp32(rx: SerialPin, tx: SerialPin, baud: BaudRate): void {
         serial.redirect(tx, rx, baud)
-        basic.pause(3000)
+        basic.pause(100)
 
         wifiConnected = false
         btConnected = false
@@ -64,7 +64,7 @@ namespace ESP32UART {
 
         disconnectWifi()
         sendATWaitOK("AT")
-        basic.pause(500);
+        basic.pause(100);
     }
 
     /**
@@ -91,7 +91,9 @@ namespace ESP32UART {
 
         while (input.runningTime() < timeout) {
             serial.writeString(cmd + "\r\n")
-            if (containsText(lastLine, "OK")) return
+            if (containsText(lastLine, "OK")) {
+                updateConnectionStatus(lastLine)
+                return }
             if (containsText(lastLine, "ERROR")) return
             basic.pause(500)
         }
@@ -140,20 +142,6 @@ namespace ESP32UART {
     //% weight=89
     export function disconnectWifi(): void {
          sendATWaitOK("AT+CWQAP\r\n")
-         let timeout = input.runningTime() + 20000
-
-         // 현재 상태 업데이트 시도 (이미 연결되었을 수도 있으므로)
-
-        while (input.runningTime() < timeout) {
-            updateConnectionStatus(lastLine)
-            
-            if (wifiConnected = false) {
-                TFTGraph.drawStatus("WIFI DISCONNECTED", Color.Red)
-                return
-            }
-
-            basic.pause(200)
-        }
     }
 
     /**
