@@ -107,8 +107,6 @@ namespace RBTFT20 {
      * Initialize TFT Display (ST7789, SPI MODE3, Landscape 90°)
      * Pins are FIXED: SCK=P13, MOSI=P15, DC=P14
      */
-    //% block="Initialize TFT"
-    //% weight=100
     export function init(): void {
         if (_inited) return
 
@@ -162,7 +160,7 @@ namespace RBTFT20 {
     //% block="Clear screen"
     //% weight=80
     export function clearScreen(): void {
-        drawRectangle(0, 23, TFTWIDTH, TFTHEIGHT, Color.Green)
+        drawRectangle(0, 23, TFTWIDTH, TFTHEIGHT, Color.Black)
     }
 
     /**
