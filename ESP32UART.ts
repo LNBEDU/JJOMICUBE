@@ -59,6 +59,7 @@ namespace ESP32UART {
             let rawLine = serial.readUntil(serial.delimiters(Delimiters.NewLine))
             updateConnectionStatus(rawLine)
             lastLine = rawLine
+            TFTGraph.drawStatus(lastLine, Color.DarkGreen)
         })
     }
 
@@ -115,7 +116,7 @@ namespace ESP32UART {
 
             // 비교 연산자 '='를 사용해야 합니다!
             if (wifiConnected = true) {
-                //TFTGraph.drawStatus("WIFI CONNECTED", Color.DarkGreen)
+                TFTGraph.drawStatus("WIFI CONNECTED", Color.DarkGreen)
                 return // 연결 성공 시 함수 종료
             } else {wifiConnected = false}
 
