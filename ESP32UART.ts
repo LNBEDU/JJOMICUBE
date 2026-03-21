@@ -61,6 +61,9 @@ namespace ESP32UART {
             lastLine = rawLine
             TFTGraph.drawStatus(lastLine, Color.DarkGreen)
         })
+
+        sendATWaitOK("AT")
+        basic.pause(500);
     }
 
     /**
