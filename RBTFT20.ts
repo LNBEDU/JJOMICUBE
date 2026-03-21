@@ -103,11 +103,11 @@ namespace RBTFT20 {
         sendBuf(TFTCommands.RAMWR, null)
     }
 
-       /**
+    /**
      * Initialize TFT Display (ST7789, SPI MODE3, Landscape 90°)
      * Pins are FIXED: SCK=P13, MOSI=P15, DC=P14
      */
-    //% block="initRBTFT20"
+    //% block="RBTFT20 초기화"
     //% weight=65
     export function initRBTFT20(): void {
         if (_inited) return
