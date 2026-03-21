@@ -48,7 +48,7 @@ namespace ESP32UART {
     //% weight=100
     export function initEsp32(rx: SerialPin, tx: SerialPin, baud: BaudRate): void {
         serial.redirect(tx, rx, baud)
-        basic.pause(1500)
+        basic.pause(3000)
 
         wifiConnected = false
         btConnected = false
