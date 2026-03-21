@@ -62,6 +62,12 @@ namespace JJONeo {
     /**
      * NeoPixel을 시작합니다 (P0 핀 고정).
      */
+    //% blockId=jjo_init
+    //% block="NeoPixel 시작 LED 개수 $num 밝기 $brightness"
+    //% num.defl=12 num.min=1 num.max=64
+    //% brightness.defl=20 brightness.min=0 brightness.max=255
+    //% inlineInputMode=inline
+    //% weight=100
     export function init(num: number, brightness: number): void {
         ledCount = clamp(num, 1, 64)
         strip = neopixel.create(DigitalPin.P0, ledCount, NeoPixelMode.RGB)

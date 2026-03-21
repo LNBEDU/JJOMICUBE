@@ -25,7 +25,7 @@ namespace TFTGraph {
     // --- 레이아웃 상수 및 변수 ---
     const W = 320
     const H = 240
-    export const STATUS_H = 26
+    const STATUS_H = 26
     let margin = 8
     let infoW = 92
     let gap = 10
@@ -37,10 +37,6 @@ namespace TFTGraph {
     let min1 = 1023, max1 = 0, min2 = 1023, max2 = 0
     let lastReset = 0, tick = 0
     const TEXT_EVERY = 6
-
-    let dataHistory1: number[] = []
-    let dataHistory2: number[] = []
-    let maxDataPoints = 150 // 화면 가로폭에 맞춰 조정 (gw / _thickness)
 
     function idiv(a: number, b: number): number {
         return (a / b) >> 0
@@ -60,10 +56,10 @@ namespace TFTGraph {
         while (msg.indexOf("\t") >= 0) msg = msg.replace("\t", " ")
 
         if (msg.length > 20) {
-            msg = msg.slice(0, 20)
+            msg = msg.substring(0, 20)
         }
 
-        RBTFT20.drawRectangle(0, 0, 270, STATUS_H - 3, Color.Black)
+        RBTFT20.drawRectangle(0, 0, W, STATUS_H - 3, Color.Black)
 
         TFTFont.drawText5x7(
             margin,
@@ -144,57 +140,99 @@ namespace TFTGraph {
      */
     //% block="그래프 업데이트"
     //% weight=80
-    // 상단에 데이터를 담을 배열 변수 추가 필요 (전역 변수 영역)
     export function update() {
         if (!_started) return
 
-        // 1. 센서 값 읽기 및 필터링 (기존 로직 유지)
         let v1 = pins.analogReadPin(_pin1)
         let v2 = (_mode == 2) ? pins.analogReadPin(_pin2) : 0
 
         if (!fInit) {
-            f1 = v1; f2 = v2; fInit = true
+            f1 = v1
+            f2 = v2
+            fInit = true
         } else {
             let w = (_smoothLevel == 1) ? 2 : (_smoothLevel == 2) ? 4 : (_smoothLevel == 3) ? 6 : 0
             f1 = (f1 * (10 - w) + v1 * w) / 10
             if (_mode == 2) f2 = (f2 * (10 - w) + v2 * w) / 10
         }
 
-        // 2. 스크롤용 데이터 배열 업데이트
-        dataHistory1.push(f1)
-        if (_mode == 2) dataHistory2.push(f2)
-
-        // 배열 크기가 화면 폭을 넘어가면 가장 오래된 데이터 삭제
-        if (dataHistory1.length > (gw / _thickness)) {
-            dataHistory1.shift()
-            if (_mode == 2) dataHistory2.shift()
-        }
-
-        // 3. 화면 전체 다시 그리기 (스크롤 효과)
-        // 그래프 영역 전체를 한 번에 지웁니다.
-        RBTFT20.drawRectangle(gx, gy, gw, gh, Color.Black)
-
-        for (let i = 0; i < dataHistory1.length - 1; i++) {
-            let currX = gx + (i * _thickness)
-            let nextX = gx + ((i + 1) * _thickness)
-
-            if (_mode == 1) {
-                let yCurr = mapToY(dataHistory1[i], _yFixed ? _yMinFixed : min1, _yFixed ? _yMaxFixed : max1, gy + 1, gh - 2)
-                let yNext = mapToY(dataHistory1[i+1], _yFixed ? _yMinFixed : min1, _yFixed ? _yMaxFixed : max1, gy + 1, gh - 2)
-                // 선 연결
-                drawVLine(nextX, yCurr, yNext, Color.Cyan)
-            } else {
-                // 모드 2 (상하 분할) 로직 생략(위와 동일한 방식으로 topY, bottomY 적용)
+        if (!_yFixed) {
+            if (f1 < min1) min1 = f1
+            if (f1 > max1) max1 = f1
+            if (_mode == 2) {
+                if (f2 < min2) min2 = f2
+                if (f2 > max2) max2 = f2
             }
         }
 
-        // 4. 정보 텍스트 표시
-        if (++tick >= TEXT_EVERY) {
-            tick = 0
-            _mode == 1 ? drawInfo1() : drawInfo2()
+        if (!_yFixed && input.runningTime() - lastReset > _resetMs) {
+            resetMinMax()
+        }
+
+        if (_mode == 1) {
+            let y1 = mapToY(f1, _yFixed ? _yMinFixed : min1, _yFixed ? _yMaxFixed : max1, gy + 1, gh - 2)
+
+            clearColumn(gx + xPos, gy, gh)
+
+            if (lastY1 != -1) drawVLine(gx + xPos, lastY1, y1, Color.Cyan)
+            lastY1 = y1
+
+            if (++tick >= TEXT_EVERY) {
+                tick = 0
+                drawInfo1()
+            }
+        } else {
+            let y1 = mapToY(f1, _yFixed ? _yMinFixed : min1, _yFixed ? _yMaxFixed : max1, topY + 1, sectionH - 2)
+            let y2 = mapToY(f2, _yFixed ? _yMinFixed : min2, _yFixed ? _yMaxFixed : max2, bottomY + 1, sectionH - 2)
+
+            clearColumn(gx + xPos, topY, sectionH)
+            clearColumn(gx + xPos, bottomY, sectionH)
+
+            if (lastY1 != -1) drawVLine(gx + xPos, lastY1, y1, Color.Cyan)
+            if (lastY2 != -1) drawVLine(gx + xPos, lastY2, y2, Color.Yellow)
+
+            lastY1 = y1
+            lastY2 = y2
+
+            if (++tick >= TEXT_EVERY) {
+                tick = 0
+                drawInfo2()
+            }
+        }
+
+        xPos += _thickness
+        if (xPos >= gw - _thickness) {
+            xPos = 0
+            lastY1 = -1
+            lastY2 = -1
         }
 
         basic.pause(_pauseMs)
+    }
+
+    //% block="Y축 자동"
+    //% weight=75
+    export function yAuto() {
+        _yFixed = false
+        resetMinMax()
+    }
+
+    //% block="Y축 고정 최솟값 %min 최댓값 %max"
+    //% min.defl=0 max.defl=1023
+    //% min.min=0 min.max=1023 max.min=0 max.max=1023
+    //% weight=74
+    export function yFixed(min: number, max: number) {
+        _yFixed = true
+        _yMinFixed = min
+        _yMaxFixed = max
+        resetMinMax()
+    }
+
+    //% block="그래프 리셋"
+    //% weight=60
+    export function reset() {
+        resetMinMax()
+        xPos = 0
     }
 
     function layoutCommon() {
