@@ -62,7 +62,7 @@ namespace ESP32UART {
             TFTGraph.drawStatus(lastLine, Color.DarkGreen)
         })
 
-        basic.pause(3000);
+        basic.pause(5000);
 
         disconnectWifi()
         basic.pause(1000);
