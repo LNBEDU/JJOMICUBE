@@ -44,25 +44,25 @@ namespace ESP32UART {
     /**
      * Initialize UART for ESP32 bridge
      */
-    //% block="init ESP32 RX $rx TX $tx baud $baud"
+    //% block="init ESP32 RX:P8 TX:P12 baudrate:115200"
     //% weight=100
-    export function initEsp32(rx: SerialPin, tx: SerialPin, baud: BaudRate): void {
-        serial.redirect(tx, rx, baud)
+    export function initEsp32(): void {
+        serial.redirect(SerialPin.P12, SerialPin.P8, BaudRate.BaudRate115200)
         basic.pause(100)
 
         wifiConnected = false
         btConnected = false
         lastLine = ""
-        syncStatusIcons()
+        
 
         serial.onDataReceived(serial.delimiters(Delimiters.NewLine), function () {
             let rawLine = serial.readUntil(serial.delimiters(Delimiters.NewLine))
             updateConnectionStatus(rawLine)
             lastLine = rawLine
-            TFTGraph.drawStatus(lastLine, Color.DarkGreen)
         })
 
         disconnectWifi()
+        syncStatusIcons()
         sendATWaitOK("AT")
         basic.pause(100);
     }
@@ -142,6 +142,9 @@ namespace ESP32UART {
     //% weight=89
     export function disconnectWifi(): void {
          sendATWaitOK("AT+CWQAP\r\n")
+         wifiConnected = false
+         TFTGraph.drawStatus("WIFI DISCONNECTED", Color.Red)
+         syncStatusIcons()
     }
 
     /**
