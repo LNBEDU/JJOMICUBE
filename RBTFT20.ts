@@ -107,7 +107,9 @@ namespace RBTFT20 {
      * Initialize TFT Display (ST7789, SPI MODE3, Landscape 90°)
      * Pins are FIXED: SCK=P13, MOSI=P15, DC=P14
      */
-    export function init(): void {
+    //% block="initRBTFT20"
+    //% weight=100
+    export function initRBTFT20(): void {
         if (_inited) return
 
         // ===== FIXED PINS =====
@@ -172,7 +174,6 @@ namespace RBTFT20 {
     //% block="Fill rect x %x y %y w %w h %h color %color"
     //% weight=75
     export function drawRectangle(x: number, y: number, w: number, h: number, color: Color): void {
-        init()
         if (w <= 0 || h <= 0) return
 
         let x1 = x + w - 1
@@ -214,7 +215,6 @@ namespace RBTFT20 {
     //% y.min=0 y.max=239
     //% weight=70
     export function drawPixel(x: number, y: number, color: Color): void {
-        init()
         if (x < 0 || x >= TFTWIDTH || y < 0 || y >= TFTHEIGHT) return
         setWindow(x, y, x, y)
         beginPixels()
