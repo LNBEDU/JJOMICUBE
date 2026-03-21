@@ -15,8 +15,7 @@ namespace JJOMICUBE {
         // TFTGraph 패키지 내부에 layoutCommon을 export로 수정하거나 
         // 여기서 직접 초기화 로직을 수행합니다.
         
-        RBTFT20.init()
-        RBTFT20.clearScreen()
+        RBTFT20.init();
         basic.pause(500);        
         
         // 2. 네오픽셀 초기화

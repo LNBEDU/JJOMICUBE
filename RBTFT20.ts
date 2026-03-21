@@ -140,6 +140,9 @@ namespace RBTFT20 {
         send(TFTCommands.DISPON, [])
         basic.pause(120)
 
+        clearScreen()
+        basic.pause(120)
+
         _inited = true
     }
 
@@ -160,7 +163,7 @@ namespace RBTFT20 {
     //% block="Clear screen"
     //% weight=80
     export function clearScreen(): void {
-        drawRectangle(0, 23, TFTWIDTH, TFTHEIGHT, Color.Black)
+        drawRectangle(0, 0, TFTWIDTH, TFTHEIGHT, Color.Black)
     }
 
     /**
@@ -229,12 +232,6 @@ namespace RBTFT20 {
     //% weight=59
     export function height(): number { return TFTHEIGHT }
 
-    // 메인 루프나 별도 함수에서 활용
-    function updateDisplayStatus(status: string, color: Color) {
-    // 상단에 상태 바(Status Bar)처럼 표시 (예: 높이 30픽셀)
-    RBTFT20.drawRectangle(0, 0, 320, 30, color);
-    // 상태에 따라 아이콘이나 문구를 띄우는 로직 추가
-}
 
  
 }
