@@ -87,7 +87,7 @@ namespace ESP32UART {
         serial.writeString(cmd + "\r\n")
         //basic.pause(500)
 
-        let timeout = input.runningTime() + 4000
+        let timeout = input.runningTime() + 10000
 
         while (input.runningTime() < timeout) {
             if (containsText(lastLine, "OK")) {
