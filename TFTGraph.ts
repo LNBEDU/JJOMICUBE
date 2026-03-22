@@ -151,7 +151,8 @@ namespace TFTGraph {
 
         resetGraphState()
         clearSinglePlotArea()
-        drawInfo1()
+        drawInfo1Labels()
+        drawInfo1Values()
     }
 
     /**
@@ -187,7 +188,8 @@ namespace TFTGraph {
 
         resetGraphState()
         clearSplitPlotArea()
-        drawInfo2()
+        drawInfo2Labels()
+        drawInfo2Values()
     }
 
     /**
@@ -303,8 +305,8 @@ namespace TFTGraph {
 
         if (++tick >= TEXT_EVERY) {
             tick = 0
-            if (_mode == 1) drawInfo1()
-            else drawInfo2()
+            if (_mode == 1) drawInfo1Values()
+            else drawInfo2Values()
         }
 
         basic.pause(_pauseMs)
@@ -408,42 +410,67 @@ namespace TFTGraph {
         return areaTop + (areaH - 1) - Math.round(n * (areaH - 1))
     }
 
-    function drawInfo1() {
+    // -----------------------------
+    // 단일 그래프 정보창
+    // -----------------------------
+    function drawInfo1Labels() {
         RBTFT20.drawRectangle(margin + 2, gy + 24, infoW - 6, gh - 28, Color.Black)
 
-        TFTFont.drawText5x7(margin + 6, gy + 26, "NOW", 2, Color.Cyan, Color.Black)
+        TFTFont.drawText5x7(margin + 6, gy + 26, "VAL", 2, Color.Cyan, Color.Black)
+        TFTFont.drawText5x7(margin + 6, gy + 76, "MIN", 2, Color.Yellow, Color.Black)
+        TFTFont.drawText5x7(margin + 6, gy + 126, "MAX", 2, Color.Yellow, Color.Black)
+    }
+
+    function drawInfo1Values() {
+        // VAL 값 영역
+        RBTFT20.drawRectangle(margin + 6, gy + 48, infoW - 16, 18, Color.Black)
         TFTFont.drawText5x7(margin + 6, gy + 48, "" + Math.round(f1), 2, Color.White, Color.Black)
 
-        TFTFont.drawText5x7(margin + 6, gy + 76, "MIN", 2, Color.Yellow, Color.Black)
+        // MIN 값 영역
+        RBTFT20.drawRectangle(margin + 6, gy + 98, infoW - 16, 18, Color.Black)
         TFTFont.drawText5x7(margin + 6, gy + 98, "" + Math.round(min1), 2, Color.White, Color.Black)
 
-        TFTFont.drawText5x7(margin + 6, gy + 126, "MAX", 2, Color.Yellow, Color.Black)
+        // MAX 값 영역
+        RBTFT20.drawRectangle(margin + 6, gy + 148, infoW - 16, 18, Color.Black)
         TFTFont.drawText5x7(margin + 6, gy + 148, "" + Math.round(max1), 2, Color.White, Color.Black)
     }
 
-    function drawInfo2() {
-        // 위 정보창
+    // -----------------------------
+    // 2분할 그래프 정보창
+    // -----------------------------
+    function drawInfo2Labels() {
+        // 위 정보창 라벨
         RBTFT20.drawRectangle(margin + 2, topY + 22, infoW - 6, 74, Color.Black)
+        TFTFont.drawText5x7(margin + 6, topY + 24, "VAL", 2, Color.Cyan, Color.Black)
+        TFTFont.drawText5x7(margin + 6, topY + 46, "MIN", 2, Color.Yellow, Color.Black)
+        TFTFont.drawText5x7(margin + 6, topY + 68, "MAX", 2, Color.Yellow, Color.Black)
 
-        TFTFont.drawText5x7(margin + 6, topY + 24, "N1", 2, Color.Cyan, Color.Black)
-        TFTFont.drawText5x7(margin + 34, topY + 24, "" + Math.round(f1), 2, Color.White, Color.Black)
-
-        TFTFont.drawText5x7(margin + 6, topY + 46, "L1", 2, Color.Yellow, Color.Black)
-        TFTFont.drawText5x7(margin + 34, topY + 46, "" + Math.round(min1), 2, Color.White, Color.Black)
-
-        TFTFont.drawText5x7(margin + 6, topY + 68, "H1", 2, Color.Yellow, Color.Black)
-        TFTFont.drawText5x7(margin + 34, topY + 68, "" + Math.round(max1), 2, Color.White, Color.Black)
-
-        // 아래 정보창
+        // 아래 정보창 라벨
         RBTFT20.drawRectangle(margin + 2, bottomY + 22, infoW - 6, 74, Color.Black)
+        TFTFont.drawText5x7(margin + 6, bottomY + 24, "VAL", 2, Color.Cyan, Color.Black)
+        TFTFont.drawText5x7(margin + 6, bottomY + 46, "MIN", 2, Color.Yellow, Color.Black)
+        TFTFont.drawText5x7(margin + 6, bottomY + 68, "MAX", 2, Color.Yellow, Color.Black)
+    }
 
-        TFTFont.drawText5x7(margin + 6, bottomY + 24, "N2", 2, Color.Cyan, Color.Black)
-        TFTFont.drawText5x7(margin + 34, bottomY + 24, "" + Math.round(f2), 2, Color.White, Color.Black)
+    function drawInfo2Values() {
+        // 위 값 영역
+        RBTFT20.drawRectangle(margin + 42, topY + 24, infoW - 50, 14, Color.Black)
+        TFTFont.drawText5x7(margin + 42, topY + 24, "" + Math.round(f1), 2, Color.White, Color.Black)
 
-        TFTFont.drawText5x7(margin + 6, bottomY + 46, "L2", 2, Color.Yellow, Color.Black)
-        TFTFont.drawText5x7(margin + 34, bottomY + 46, "" + Math.round(min2), 2, Color.White, Color.Black)
+        RBTFT20.drawRectangle(margin + 42, topY + 46, infoW - 50, 14, Color.Black)
+        TFTFont.drawText5x7(margin + 42, topY + 46, "" + Math.round(min1), 2, Color.White, Color.Black)
 
-        TFTFont.drawText5x7(margin + 6, bottomY + 68, "H2", 2, Color.Yellow, Color.Black)
-        TFTFont.drawText5x7(margin + 34, bottomY + 68, "" + Math.round(max2), 2, Color.White, Color.Black)
+        RBTFT20.drawRectangle(margin + 42, topY + 68, infoW - 50, 14, Color.Black)
+        TFTFont.drawText5x7(margin + 42, topY + 68, "" + Math.round(max1), 2, Color.White, Color.Black)
+
+        // 아래 값 영역
+        RBTFT20.drawRectangle(margin + 42, bottomY + 24, infoW - 50, 14, Color.Black)
+        TFTFont.drawText5x7(margin + 42, bottomY + 24, "" + Math.round(f2), 2, Color.White, Color.Black)
+
+        RBTFT20.drawRectangle(margin + 42, bottomY + 46, infoW - 50, 14, Color.Black)
+        TFTFont.drawText5x7(margin + 42, bottomY + 46, "" + Math.round(min2), 2, Color.White, Color.Black)
+
+        RBTFT20.drawRectangle(margin + 42, bottomY + 68, infoW - 50, 14, Color.Black)
+        TFTFont.drawText5x7(margin + 42, bottomY + 68, "" + Math.round(max2), 2, Color.White, Color.Black)
     }
 }
