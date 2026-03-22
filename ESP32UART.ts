@@ -118,12 +118,6 @@ namespace ESP32UART {
 
         TFTGraph.drawStatus("WIFI CONNECTING...", Color.DarkGreen)
 
-        
-
-
-
-
-
         // 3. 타임아웃 설정 (20초)
         let timeout = input.runningTime() + 20000
 
@@ -155,9 +149,9 @@ namespace ESP32UART {
          wifiConnected = false
 
          TFTGraph.drawStatus("WIFI DISCONNECTED", Color.Red)
-         basic.pause(1000)
-         syncStatusIcons() 
-         okState = false } else { TFTGraph.drawStatus("WIFI DISCONNECT FAILED", Color.Red) }
+         basic.pause(500)
+         syncStatusIcons() }
+         okState = false
     }
 
     /**
@@ -325,12 +319,13 @@ namespace ESP32UART {
             btConnected = false
             TFTGraph.drawStatus("BT DISCONNECTED", Color.Red) 
 
-            basic.pause(1000)
+            basic.pause(500)
             syncStatusIcons() 
 
          okState = false } else {
 
-        TFTGraph.drawStatus("BT DISCONNECTED FAILED", Color.Red) }
+        TFTGraph.drawStatus("BT DISCONNECTED FAILED", Color.Red)
+         }
  
     }
 
