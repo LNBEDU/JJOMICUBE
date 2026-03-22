@@ -28,6 +28,11 @@ namespace JJOMICUBE {
         JJONeo.rainbow();
         basic.pause(500);
         JJONeo.clear();
+        basic.pause(500);
+
+        // 4. ESP32 UART 초기화
+        ESP32UART.initEsp32();
+        //basic.pause(500);
     }
 
     /**
