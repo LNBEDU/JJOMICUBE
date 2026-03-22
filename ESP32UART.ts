@@ -6,7 +6,7 @@ namespace ESP32UART {
     let lastLine = ""
     export let btConnected = false
     export let wifiConnected = false
-    export let okState = false
+    let okState = false
 
 
     //WI-Fi와 Bluetooth 상태 아이콘을 TFTFont 네임스페이스의 drawStatusIcons 함수로 동기화하는 내부 함수
