@@ -184,49 +184,64 @@ namespace ESP32UART {
     }
     
 
-     /**
+    /**
      * ThingSpeak로 데이터를 전송합니다
      */
     //% block="ThingSpeak send api key $apiKey field1 $f1 field2 $f2 field3 $f3"
     //% weight=86
     export function thingSpeakSend(apiKey: string, f1: number, f2: number, f3: number): void {
-        let request = "GET /update?api_key=" + apiKey +
+        let request =
+            "GET /update?api_key=" + apiKey +
             "&field1=" + f1 +
             "&field2=" + f2 +
             "&field3=" + f3 +
             " HTTP/1.1\r\n" +
-            "Host: api.thingspeak.com\r\n\r\n"
+            "Host: api.thingspeak.com\r\n" +
+            "Connection: close\r\n" +
+            "\r\n"
 
+        // 응답 버퍼 초기화
+        lastLine = ""
+
+        // 기존 연결 닫기
+        serial.writeString("AT+CIPCLOSE\r\n")
+        basic.pause(300)
+
+        // TCP 연결 시작
+        lastLine = ""
         serial.writeString("AT+CIPSTART=\"TCP\",\"api.thingspeak.com\",80\r\n")
-        if (!waitForResponse("CONNECT", 5000)) return
 
-        serial.writeString("AT+CIPSEND=" + request.length + "\r\n")
-        if (!waitForResponse(">", 2000)) {
-            serial.writeString("AT+CIPCLOSE\r\n")
+        if (!waitForConnectOrOK(5000)) {
+            TFTGraph.drawStatus("TS TCP FAIL", Color.Red)
             return
         }
 
+        // 전송 길이 지정
+        lastLine = ""
+        serial.writeString("AT+CIPSEND=" + request.length + "\r\n")
+
+        if (!waitForPrompt(3000)) {
+            serial.writeString("AT+CIPCLOSE\r\n")
+            TFTGraph.drawStatus("TS READY FAIL", Color.Red)
+            return
+        }
+
+        // 실제 HTTP 요청 전송
+        lastLine = ""
         serial.writeString(request)
 
-        if (waitForResponse("SEND OK", 3000)) {
-            basic.pause(200)
-            basic.clearScreen()
-            syncStatusIcons()
+        if (!waitForSendOK(5000)) {
+            serial.writeString("AT+CIPCLOSE\r\n")
+            TFTGraph.drawStatus("TS SEND FAIL", Color.Red)
+            return
         }
+
+        // 서버 응답 받을 시간
+        basic.pause(3000)
+
+        serial.writeString("AT+CIPCLOSE\r\n")
+        TFTGraph.drawStatus("TS SENT", Color.Green)
     }
-
-    function waitForResponse(target: string, timeout: number): boolean {
-        let targetUpper = target.toUpperCase()
-        let startTime = input.runningTime()
-
-        while (input.runningTime() - startTime < timeout) {
-            if (containsText(lastLine, targetUpper)) return true
-            if (containsText(lastLine, "ERROR") || containsText(lastLine, "FAIL")) return false
-            basic.pause(20)
-        }
-        return false
-    }
-
 
 function waitForConnectOrOK(timeoutMs: number): boolean {
     let timeout = input.runningTime() + timeoutMs
