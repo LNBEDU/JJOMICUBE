@@ -6,7 +6,7 @@ namespace ESP32UART {
     let lastLine = ""
     export let btConnected = false
     export let wifiConnected = false
-    export let okState = false
+    let okState = false
 
 
     //WI-Fi와 Bluetooth 상태 아이콘을 TFTFont 네임스페이스의 drawStatusIcons 함수로 동기화하는 내부 함수
@@ -111,32 +111,23 @@ namespace ESP32UART {
         // 1. 초기 상태 설정
         wifiConnected = false
 
+        TFTGraph.drawStatus("WIFI CONNECTING...", Color.DarkGreen)
+
         // 2. AT 명령 전송
         sendATWaitOK("AT")
         sendATWaitOK("AT+CWMODE=1")
         sendATWaitOK("AT+CWJAP=\"" + ssid + "\",\"" + password + "\"")
 
-        TFTGraph.drawStatus("WIFI CONNECTING...", Color.DarkGreen)
-
-        // 3. 타임아웃 설정 (20초)
-        let timeout = input.runningTime() + 20000
-
-        // 4. 연결될 때까지 대기 루프
-        while (input.runningTime() < timeout) {
-
-            // 비교 연산자 '='를 사용해야 합니다!
-            if (wifiConnected = true) {
-                TFTGraph.drawStatus("WIFI CONNECTED", Color.DarkGreen)
-                return // 연결 성공 시 함수 종료
-            } else {wifiConnected = false}
-
-            basic.pause(500) // 너무 자주 체크하기보다 0.5초 정도 여유를 줍니다.
+        if (okState) {
+         wifiConnected = true
+         TFTGraph.drawStatus("WIFI CONNECTED", Color.Green)
+         basic.pause(500)
+         okState = false } else { 
+            TFTGraph.drawStatus("WIFI ERROR: TIMEOUT", Color.Red) 
         }
-
-        // 5. 루프를 빠져나왔다는 것은 20초 동안 성공하지 못했다는 뜻 (타임아웃)
-        wifiConnected = false // 최종적으로 실패 처리
-        TFTGraph.drawStatus("WIFI ERROR: TIMEOUT", Color.Red)
+        syncStatusIcons() 
     }
+
 
     /**
      * Wi-Fi 연결 해제
@@ -145,13 +136,16 @@ namespace ESP32UART {
     //% weight=89
     export function disconnectWifi(): void {
          sendATWaitOK("AT+CWQAP\r\n")
+
          if (okState) {
          wifiConnected = false
-
          TFTGraph.drawStatus("WIFI DISCONNECTED", Color.Red)
-         basic.pause(1000)
-         syncStatusIcons() 
-         okState = false } else { TFTGraph.drawStatus("WIFI DISCONNECT FAILED", Color.Red) }
+         basic.pause(500)
+         
+         okState = false } else { 
+            TFTGraph.drawStatus("WIFI DISCONNECT FAILED", Color.Red) 
+        }
+        syncStatusIcons() 
     }
 
     /**
@@ -171,21 +165,16 @@ namespace ESP32UART {
     export function checkWifiStatus(): boolean {
         sendATWaitOK("AT+WIFISTATUS?")
 
-        let timeout = input.runningTime() + 5000
-
-        while (input.runningTime() < timeout) {
-            // 2. 응답 내용에 따라 즉시 true/false 반환
-            if (containsText(lastLine, "WIFI:1")) {
+        if (okState) {
+         if (containsText(lastLine, "WIFI:1")) {
                 return true
             }
             if (containsText(lastLine, "WIFI:0")) {
                 return false
             }
-            basic.pause(50)
+        } else { 
+            TFTGraph.drawStatus("FAILED", Color.Red) 
         }
-
-        // 3. 5초 동안 응답이 없으면 기본값으로 false 반환
-        return false 
     }
     
 
