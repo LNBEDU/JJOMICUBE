@@ -149,9 +149,9 @@ namespace ESP32UART {
          wifiConnected = false
 
          TFTGraph.drawStatus("WIFI DISCONNECTED", Color.Red)
-         basic.pause(500)
-         syncStatusIcons() }
-         okState = false
+         basic.pause(1000)
+         syncStatusIcons() 
+         okState = false } else { TFTGraph.drawStatus("WIFI DISCONNECT FAILED", Color.Red) }
     }
 
     /**
@@ -319,7 +319,7 @@ namespace ESP32UART {
             btConnected = false
             TFTGraph.drawStatus("BT DISCONNECTED", Color.Red) 
 
-            basic.pause(500)
+            basic.pause(1000)
             syncStatusIcons() 
 
          okState = false } else {
