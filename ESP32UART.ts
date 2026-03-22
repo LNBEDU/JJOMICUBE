@@ -6,7 +6,7 @@ namespace ESP32UART {
     let lastLine = ""
     export let btConnected = false
     export let wifiConnected = false
-    let okState = false
+    export let okState = false
 
 
     //WI-Fi와 Bluetooth 상태 아이콘을 TFTFont 네임스페이스의 drawStatusIcons 함수로 동기화하는 내부 함수
@@ -317,15 +317,24 @@ namespace ESP32UART {
         if (okState) {
 
             btConnected = false
-            TFTGraph.drawStatus("BT DISCONNECTED", Color.Red) 
-
+            TFTGraph.drawStatus("BT DISCONNECTED", Color.Red) }
+            else { TFTGraph.drawStatus("BT DISCONNECTED FAILED", Color.Red) }
             basic.pause(500)
-            syncStatusIcons() 
+            syncStatusIcons()
 
-         okState = false } else {
+       
+        /*    let timeout = input.runningTime() + 5000
 
-        TFTGraph.drawStatus("BT DISCONNECTED FAILED", Color.Red)
-         }
+        while (input.runningTime() < timeout) {
+            if (containsText(lastLine, "OK")) {
+                btConnected = false
+                TFTGraph.drawStatus("BT DISCONNECTED", Color.Red)
+                return
+            }
+            basic.pause(50)
+        } 
+
+        TFTGraph.drawStatus("BT DISCONNECTED FAILED", Color.Red) */
  
     }
 
