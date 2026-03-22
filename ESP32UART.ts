@@ -311,13 +311,13 @@ namespace ESP32UART {
         let timeout = input.runningTime() + 5000
 
         while (input.runningTime() < timeout) {
-            if (containsText(lastLine, "BT:0")) {
+            if (containsText(lastLine, "OK")) {
                 btConnected = false
                 TFTGraph.drawStatus("BT DISCONNECTED", Color.Red)
                 return
             }
             basic.pause(50)
-        }
+        } 
 
         TFTGraph.drawStatus("BT DISCONNECTED FAILED", Color.Red)
  
