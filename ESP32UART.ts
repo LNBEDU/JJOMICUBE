@@ -184,7 +184,7 @@ namespace ESP32UART {
     }
     
 
-   /**
+    /**
      * ThingSpeak로 데이터를 전송합니다
      */
     //% block="ThingSpeak send api key $apiKey field1 $f1 field2 $f2 field3 $f3"
@@ -200,55 +200,82 @@ namespace ESP32UART {
             "Connection: close\r\n" +
             "\r\n"
 
+        // 응답 버퍼 초기화
+        lastLine = ""
+
         // 기존 연결 닫기
         serial.writeString("AT+CIPCLOSE\r\n")
-        basic.pause(200)
+        basic.pause(300)
 
         // TCP 연결 시작
+        lastLine = ""
         serial.writeString("AT+CIPSTART=\"TCP\",\"api.thingspeak.com\",80\r\n")
 
-        // CONNECT 대신 OK 또는 CONNECT 둘 다 허용하는 쪽이 더 안전
-        if (!waitForResponse("OK", 5000) && !waitForResponse("CONNECT", 5000)) {
+        if (!waitForConnectOrOK(5000)) {
             TFTGraph.drawStatus("TS TCP FAIL", Color.Red)
             return
         }
 
-        // 보낼 길이 지정
+        // 전송 길이 지정
+        lastLine = ""
         serial.writeString("AT+CIPSEND=" + request.length + "\r\n")
-        if (!waitForResponse(">", 3000)) {
+
+        if (!waitForPrompt(3000)) {
             serial.writeString("AT+CIPCLOSE\r\n")
-            TFTGraph.drawStatus("TS SEND READY FAIL", Color.Red)
+            TFTGraph.drawStatus("TS READY FAIL", Color.Red)
             return
         }
 
         // 실제 HTTP 요청 전송
+        lastLine = ""
         serial.writeString(request)
 
-        // ESP 전송 완료 확인
-        if (!waitForResponse("SEND OK", 5000)) {
+        if (!waitForSendOK(5000)) {
             serial.writeString("AT+CIPCLOSE\r\n")
             TFTGraph.drawStatus("TS SEND FAIL", Color.Red)
             return
         }
 
-        // 서버 응답 기다리기
+        // 서버 응답 받을 시간
         basic.pause(3000)
 
         serial.writeString("AT+CIPCLOSE\r\n")
         TFTGraph.drawStatus("TS SENT", Color.Green)
     }
 
-    function waitForResponse(target: string, timeout: number): boolean {
-        let targetUpper = target.toUpperCase()
-        let startTime = input.runningTime()
+function waitForConnectOrOK(timeoutMs: number): boolean {
+    let timeout = input.runningTime() + timeoutMs
 
-        while (input.runningTime() - startTime < timeout) {
-            if (containsText(lastLine, targetUpper)) return true
-            if (containsText(lastLine, "ERROR") || containsText(lastLine, "FAIL")) return false
-            basic.pause(20)
-        }
-        return false
+    while (input.runningTime() < timeout) {
+        if (containsText(lastLine, "CONNECT")) return true
+        if (containsText(lastLine, "OK")) return true
+        if (containsText(lastLine, "ERROR")) return false
+        basic.pause(50)
     }
+    return false
+}
+
+function waitForPrompt(timeoutMs: number): boolean {
+    let timeout = input.runningTime() + timeoutMs
+
+    while (input.runningTime() < timeout) {
+        if (containsText(lastLine, ">")) return true
+        if (containsText(lastLine, "ERROR")) return false
+        basic.pause(50)
+    }
+    return false
+}
+
+function waitForSendOK(timeoutMs: number): boolean {
+    let timeout = input.runningTime() + timeoutMs
+
+    while (input.runningTime() < timeout) {
+        if (containsText(lastLine, "SEND OK")) return true
+        if (containsText(lastLine, "ERROR")) return false
+        basic.pause(50)
+    }
+    return false
+}
 
     /**
      * Connect Bluetooth by device name
