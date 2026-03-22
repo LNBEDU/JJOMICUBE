@@ -6,7 +6,7 @@ namespace ESP32UART {
     let lastLine = ""
     export let btConnected = false
     export let wifiConnected = false
-    export let okState = false
+
 
 
     //WI-Fi와 Bluetooth 상태 아이콘을 TFTFont 네임스페이스의 drawStatusIcons 함수로 동기화하는 내부 함수
@@ -82,7 +82,6 @@ namespace ESP32UART {
     //% weight=97
     export function sendATWaitOK(cmd: string): void {
         lastLine = ""
-        okState = false
         
         //basic.pause(500)
 
@@ -94,7 +93,6 @@ namespace ESP32UART {
                 updateConnectionStatus(rawLine)
                 lastLine = rawLine
             if (containsText(lastLine, "OK")) {
-                okState = true
                 return }
             if (containsText(lastLine, "ERROR")) return
             basic.pause(500)
@@ -145,13 +143,10 @@ namespace ESP32UART {
     //% weight=89
     export function disconnectWifi(): void {
          sendATWaitOK("AT+CWQAP\r\n")
-         if (okState) {
          wifiConnected = false
-
          TFTGraph.drawStatus("WIFI DISCONNECTED", Color.Red)
          basic.pause(500)
-         syncStatusIcons() }
-         okState = false
+         syncStatusIcons()
     }
 
     /**
@@ -313,13 +308,20 @@ namespace ESP32UART {
     //% weight=76
     export function disconnectBluetooth(): void {
         sendATWaitOK("AT+BTDISCONNECT\r\n")
-        
-            if (okState=true) {
+
+        let timeout = input.runningTime() + 5000
+
+        while (input.runningTime() < timeout) {
+            if (containsText(lastLine, "OK")) {
                 btConnected = false
                 TFTGraph.drawStatus("BT DISCONNECTED", Color.Red)
                 return
-            } else { TFTGraph.drawStatus("BT DISCONNECTED FAILED", Color.Red) }
+            }
             basic.pause(50)
+        } 
+
+        TFTGraph.drawStatus("BT DISCONNECTED FAILED", Color.Red)
+ 
     }
 
     /**
