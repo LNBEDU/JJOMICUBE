@@ -14,9 +14,9 @@ namespace TFTGraph {
     let _label2 = "P2"
 
     let _thickness = 2
-    let _smoothLevel = 2 // 0=없음..3=강
+    let _smoothLevel = 2 // 0=없음, 3=강
     let _pauseMs = 30 // 속도 제어
-    let _resetMs = 6000 // 자동 리셋 주기
+    let _resetMs = 6000 // 현재 코드에서는 유지용
 
     let _yFixed = false
     let _yMinFixed = 0
@@ -32,14 +32,29 @@ namespace TFTGraph {
 
     let gx = 0, gy = 0, gw = 0, gh = 0
     let sectionH = 0, topY = 0, bottomY = 0
-    let xPos = 0, lastY1 = -1, lastY2 = -1
-    let f1 = 0, f2 = 0, fInit = false
-    let min1 = 1023, max1 = 0, min2 = 1023, max2 = 0
-    let lastReset = 0, tick = 0
+
+    let xPos = 0
+    let lastY1 = -1
+    let lastY2 = -1
+
+    let f1 = 0
+    let f2 = 0
+    let fInit = false
+
+    let min1 = 1023
+    let max1 = 0
+    let min2 = 1023
+    let max2 = 0
+
+    let lastReset = 0
+    let tick = 0
     const TEXT_EVERY = 6
 
-    let dataHistory1: number[] = []
-    let dataHistory2: number[] = []
+    // 실제 플롯 영역
+    let plotTop1 = 0
+    let plotH1 = 0
+    let plotTop2 = 0
+    let plotH2 = 0
 
     function idiv(a: number, b: number): number {
         return (a / b) >> 0
@@ -95,6 +110,26 @@ namespace TFTGraph {
     }
 
     /**
+     * Y축을 고정 범위로 설정합니다.
+     */
+    //% block="Y축 고정 최소 %vmin 최대 %vmax"
+    //% weight=94
+    export function setYFixed(vmin: number, vmax: number) {
+        _yFixed = true
+        _yMinFixed = vmin
+        _yMaxFixed = vmax
+    }
+
+    /**
+     * Y축 자동 스케일로 설정합니다.
+     */
+    //% block="Y축 자동"
+    //% weight=93
+    export function setYAuto() {
+        _yFixed = false
+    }
+
+    /**
      * 1개의 아날로그 핀을 사용하는 단일 그래프를 시작합니다.
      */
     //% block="그래프 시작 1개 핀 %pin 이름 %name"
@@ -106,16 +141,20 @@ namespace TFTGraph {
         _label1 = name
         _started = true
 
-        dataHistory1 = []
-        dataHistory2 = []
-        fInit = false
-        tick = 0
-
         layoutCommon()
         drawBox(gx, gy, gw, gh, Color.DarkGrey)
         TFTFont.drawText5x7(margin + 6, gy + 6, _label1.toUpperCase(), 2, Color.Cyan, Color.Black)
+
+        plotTop1 = gy + 18
+        plotH1 = gh - 22
+
         resetMinMax()
+        clearSinglePlotArea()
+
         xPos = 0
+        lastY1 = -1
+        lastY2 = -1
+        tick = 0
     }
 
     /**
@@ -132,11 +171,6 @@ namespace TFTGraph {
         _label2 = name2
         _started = true
 
-        dataHistory1 = []
-        dataHistory2 = []
-        fInit = false
-        tick = 0
-
         layoutCommon()
         sectionH = idiv(gh - gap, 2)
         topY = gy
@@ -148,8 +182,18 @@ namespace TFTGraph {
         TFTFont.drawText5x7(margin + 6, topY + 6, _label1.toUpperCase(), 2, Color.Cyan, Color.Black)
         TFTFont.drawText5x7(margin + 6, bottomY + 6, _label2.toUpperCase(), 2, Color.Yellow, Color.Black)
 
+        plotTop1 = topY + 18
+        plotH1 = sectionH - 22
+        plotTop2 = bottomY + 18
+        plotH2 = sectionH - 22
+
         resetMinMax()
+        clearSplitPlotArea()
+
         xPos = 0
+        lastY1 = -1
+        lastY2 = -1
+        tick = 0
     }
 
     /**
@@ -179,60 +223,101 @@ namespace TFTGraph {
             }
         }
 
-        // 히스토리 저장
-        dataHistory1.push(f1)
-        if (_mode == 2) dataHistory2.push(f2)
-
-        let maxPoints = idiv(gw - 4, _thickness)
-        if (maxPoints < 2) maxPoints = 2
-
-        while (dataHistory1.length > maxPoints) {
-            dataHistory1.shift()
-            if (_mode == 2) dataHistory2.shift()
-        }
-
-        // 자동 스케일 min/max 재계산
-        if (!_yFixed) {
-            if (dataHistory1.length > 0) {
-                min1 = dataHistory1[0]
-                max1 = dataHistory1[0]
-                for (let i = 1; i < dataHistory1.length; i++) {
-                    if (dataHistory1[i] < min1) min1 = dataHistory1[i]
-                    if (dataHistory1[i] > max1) max1 = dataHistory1[i]
-                }
-            }
-
-            if (_mode == 2 && dataHistory2.length > 0) {
-                min2 = dataHistory2[0]
-                max2 = dataHistory2[0]
-                for (let i = 1; i < dataHistory2.length; i++) {
-                    if (dataHistory2[i] < min2) min2 = dataHistory2[i]
-                    if (dataHistory2[i] > max2) max2 = dataHistory2[i]
-                }
-            }
-        } else {
+        // min/max 갱신
+        if (_yFixed) {
             min1 = _yMinFixed
             max1 = _yMaxFixed
             if (_mode == 2) {
                 min2 = _yMinFixed
                 max2 = _yMaxFixed
             }
+        } else {
+            if (xPos == 0) {
+                min1 = f1
+                max1 = f1
+                if (_mode == 2) {
+                    min2 = f2
+                    max2 = f2
+                }
+            } else {
+                if (f1 < min1) min1 = f1
+                if (f1 > max1) max1 = f1
+
+                if (_mode == 2) {
+                    if (f2 < min2) min2 = f2
+                    if (f2 > max2) max2 = f2
+                }
+            }
         }
 
         if (min1 == max1) max1 = min1 + 1
         if (_mode == 2 && min2 == max2) max2 = min2 + 1
 
-        // 자동 리셋 주기
-        if (input.runningTime() - lastReset > _resetMs) {
-            lastReset = input.runningTime()
+        let plotLeft = gx + 2
+        let plotRight = gx + gw - _thickness - 2
+        let stepX = _thickness
+        let currX = plotLeft + xPos * stepX
+
+        // 그래프가 끝까지 찼으면 전체 지우고 다시 시작
+        if (currX > plotRight) {
+            if (_mode == 1) {
+                clearSinglePlotArea()
+            } else {
+                clearSplitPlotArea()
+            }
+
+            xPos = 0
+            currX = plotLeft
+            lastY1 = -1
+            lastY2 = -1
+
+            if (!_yFixed) {
+                min1 = f1
+                max1 = f1
+                if (_mode == 2) {
+                    min2 = f2
+                    max2 = f2
+                }
+            }
         }
 
-        // 화면 다시 그리기
-        if (_mode == 1) {
-            drawSingleGraph()
+        // 채널 1
+        let y1 = mapToY(
+            f1,
+            min1,
+            max1,
+            plotTop1,
+            plotH1
+        )
+
+        if (lastY1 >= 0) {
+            drawPlotLine(currX - stepX, lastY1, currX, y1, Color.Cyan)
         } else {
-            drawSplitGraph()
+            drawVLine(currX, y1, y1, Color.Cyan)
         }
+
+        lastY1 = y1
+
+        // 채널 2
+        if (_mode == 2) {
+            let y2 = mapToY(
+                f2,
+                min2,
+                max2,
+                plotTop2,
+                plotH2
+            )
+
+            if (lastY2 >= 0) {
+                drawPlotLine(currX - stepX, lastY2, currX, y2, Color.Yellow)
+            } else {
+                drawVLine(currX, y2, y2, Color.Yellow)
+            }
+
+            lastY2 = y2
+        }
+
+        xPos += 1
 
         if (++tick >= TEXT_EVERY) {
             tick = 0
@@ -240,115 +325,8 @@ namespace TFTGraph {
             else drawInfo2()
         }
 
+        lastReset = input.runningTime()
         basic.pause(_pauseMs)
-    }
-
-    function drawSingleGraph() {
-        // 그래프 내부 지우기
-        RBTFT20.drawRectangle(gx + 1, gy + 16, gw - 2, gh - 17, Color.Black)
-
-        drawBox(gx, gy, gw, gh, Color.DarkGrey)
-        TFTFont.drawText5x7(margin + 6, gy + 6, _label1.toUpperCase(), 2, Color.Cyan, Color.Black)
-
-        for (let i = 0; i < dataHistory1.length - 1; i++) {
-            let x1 = gx + 2 + (i * _thickness)
-            let x2 = gx + 2 + ((i + 1) * _thickness)
-
-            let y1 = mapToY(
-                dataHistory1[i],
-                min1,
-                max1,
-                gy + 18,
-                gh - 22
-            )
-
-            let y2 = mapToY(
-                dataHistory1[i + 1],
-                min1,
-                max1,
-                gy + 18,
-                gh - 22
-            )
-
-            drawPlotLine(x1, y1, x2, y2, Color.Cyan)
-        }
-    }
-
-    function drawSplitGraph() {
-        RBTFT20.drawRectangle(gx + 1, topY + 16, gw - 2, sectionH - 17, Color.Black)
-        RBTFT20.drawRectangle(gx + 1, bottomY + 16, gw - 2, sectionH - 17, Color.Black)
-
-        drawBox(gx, topY, gw, sectionH, Color.DarkGrey)
-        drawBox(gx, bottomY, gw, sectionH, Color.DarkGrey)
-
-        TFTFont.drawText5x7(margin + 6, topY + 6, _label1.toUpperCase(), 2, Color.Cyan, Color.Black)
-        TFTFont.drawText5x7(margin + 6, bottomY + 6, _label2.toUpperCase(), 2, Color.Yellow, Color.Black)
-
-        for (let i = 0; i < dataHistory1.length - 1; i++) {
-            let x1 = gx + 2 + (i * _thickness)
-            let x2 = gx + 2 + ((i + 1) * _thickness)
-
-            let y1a = mapToY(
-                dataHistory1[i],
-                min1,
-                max1,
-                topY + 18,
-                sectionH - 22
-            )
-            let y2a = mapToY(
-                dataHistory1[i + 1],
-                min1,
-                max1,
-                topY + 18,
-                sectionH - 22
-            )
-
-            drawPlotLine(x1, y1a, x2, y2a, Color.Cyan)
-
-            if (i < dataHistory2.length - 1) {
-                let y1b = mapToY(
-                    dataHistory2[i],
-                    min2,
-                    max2,
-                    bottomY + 18,
-                    sectionH - 22
-                )
-                let y2b = mapToY(
-                    dataHistory2[i + 1],
-                    min2,
-                    max2,
-                    bottomY + 18,
-                    sectionH - 22
-                )
-
-                drawPlotLine(x1, y1b, x2, y2b, Color.Yellow)
-            }
-        }
-    }
-
-    // drawLine 대신 사용하는 보간 함수
-    function drawPlotLine(x0: number, y0: number, x1: number, y1: number, color: Color) {
-        if (x1 < x0) {
-            let tx = x0
-            x0 = x1
-            x1 = tx
-
-            let ty = y0
-            y0 = y1
-            y1 = ty
-        }
-
-        if (x0 == x1) {
-            drawVLine(x0, y0, y1, color)
-            return
-        }
-
-        let dx = x1 - x0
-        for (let x = x0; x <= x1; x++) {
-            let t = (x - x0) / dx
-            let y = Math.round(y0 + (y1 - y0) * t)
-            drawVLine(x, y, y, color)
-        }
     }
 
     function layoutCommon() {
@@ -377,6 +355,47 @@ namespace TFTGraph {
         let yStart = Math.min(y0, y1)
         let h = Math.abs(y0 - y1) + 1
         RBTFT20.drawRectangle(x, yStart, _thickness, h, color)
+    }
+
+    function drawPlotLine(x0: number, y0: number, x1: number, y1: number, color: Color) {
+        if (x1 < x0) {
+            let tx = x0
+            x0 = x1
+            x1 = tx
+
+            let ty = y0
+            y0 = y1
+            y1 = ty
+        }
+
+        if (x0 == x1) {
+            drawVLine(x0, y0, y1, color)
+            return
+        }
+
+        let dx = x1 - x0
+        for (let x = x0; x <= x1; x++) {
+            let t = (x - x0) / dx
+            let y = Math.round(y0 + (y1 - y0) * t)
+            drawVLine(x, y, y, color)
+        }
+    }
+
+    function clearSinglePlotArea() {
+        RBTFT20.drawRectangle(gx + 1, gy + 16, gw - 2, gh - 17, Color.Black)
+        drawBox(gx, gy, gw, gh, Color.DarkGrey)
+        TFTFont.drawText5x7(margin + 6, gy + 6, _label1.toUpperCase(), 2, Color.Cyan, Color.Black)
+    }
+
+    function clearSplitPlotArea() {
+        RBTFT20.drawRectangle(gx + 1, topY + 16, gw - 2, sectionH - 17, Color.Black)
+        RBTFT20.drawRectangle(gx + 1, bottomY + 16, gw - 2, sectionH - 17, Color.Black)
+
+        drawBox(gx, topY, gw, sectionH, Color.DarkGrey)
+        drawBox(gx, bottomY, gw, sectionH, Color.DarkGrey)
+
+        TFTFont.drawText5x7(margin + 6, topY + 6, _label1.toUpperCase(), 2, Color.Cyan, Color.Black)
+        TFTFont.drawText5x7(margin + 6, bottomY + 6, _label2.toUpperCase(), 2, Color.Yellow, Color.Black)
     }
 
     function resetMinMax() {
