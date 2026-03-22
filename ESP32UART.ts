@@ -313,29 +313,13 @@ namespace ESP32UART {
     //% weight=76
     export function disconnectBluetooth(): void {
         sendATWaitOK("AT+BTDISCONNECT\r\n")
-
-        if (okState) {
-
-            btConnected = false
-            TFTGraph.drawStatus("BT DISCONNECTED", Color.Red) }
-            else { TFTGraph.drawStatus("BT DISCONNECTED FAILED", Color.Red) }
-            basic.pause(500)
-            syncStatusIcons()
-
-       
-        /*    let timeout = input.runningTime() + 5000
-
-        while (input.runningTime() < timeout) {
-            if (containsText(lastLine, "OK")) {
+        
+            if (okState=true) {
                 btConnected = false
                 TFTGraph.drawStatus("BT DISCONNECTED", Color.Red)
                 return
-            }
+            } else { TFTGraph.drawStatus("BT DISCONNECTED FAILED", Color.Red) }
             basic.pause(50)
-        } 
-
-        TFTGraph.drawStatus("BT DISCONNECTED FAILED", Color.Red) */
- 
     }
 
     /**
