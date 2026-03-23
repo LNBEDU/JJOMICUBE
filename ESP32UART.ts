@@ -73,9 +73,7 @@ namespace ESP32UART {
         btConnected = false
         lastLine = ""
 
-        disconnectWifi()
-        basic.pause(100)
-        disconnectBluetooth()
+        resetEsp32()
         basic.pause(100)
     }
 
@@ -83,10 +81,24 @@ namespace ESP32UART {
      * Send raw AT command
      */
     //% block="send AT $cmd"
-    //% weight=98
+    //% weight=99
     export function sendAT(cmd: string): void {
         serial.writeString(cmd + "\r\n")
         basic.pause(300)
+    }
+
+    /**
+     * Reset ESP32 module
+     */
+    //% block="Reset ESP32"
+    //% weight=98
+     export function resetEsp32(): void {
+        sendATWaitOK("AT+RST")
+        wifiConnected = false
+        btConnected = false
+        TFTGraph.drawStatus("Reset ESP32", Color.Red)
+        basic.pause(200)
+        syncStatusIcons()
     }
 
     /**
