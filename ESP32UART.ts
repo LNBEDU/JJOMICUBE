@@ -210,6 +210,12 @@ namespace ESP32UART {
     // request 문자열의 정확한 길이를 전송
     serial.writeString("AT+CIPSEND=" + request.length + "\r\n")
 
+    if (!waitForPrompt(3000)) {
+        serial.writeString("AT+CIPCLOSE\r\n")
+        TFTGraph.drawStatus("NO PROMPT", Color.Red)
+        return
+    }
+
     // 4. 데이터 전송
     serial.writeString(request)
 
