@@ -87,16 +87,16 @@ namespace ESP32UART {
         //basic.pause(500)
 
         let timeout = input.runningTime() + 5000
-        while (input.runningTime() < timeout) {       
-            serial.writeString(cmd + "\r\n")  
+
+        while (input.runningTime() < timeout) {
+            serial.writeString(cmd + "\r\n")
             let rawLine = serial.readUntil(serial.delimiters(Delimiters.NewLine))
                 updateConnectionStatus(rawLine)
                 lastLine = rawLine
             if (containsText(lastLine, "OK")) {
                 return }
             if (containsText(lastLine, "ERROR")) return
-            basic.pause(20)
-            
+            basic.pause(200)
         }
     }
 
@@ -123,7 +123,7 @@ namespace ESP32UART {
         while (input.runningTime() < timeout) {
 
             // 비교 연산자 '='를 사용해야 합니다!
-            if (wifiConnected) {
+            if (wifiConnected = true) {
                 TFTGraph.drawStatus("WIFI CONNECTED", Color.DarkGreen)
                 return // 연결 성공 시 함수 종료
             } else {wifiConnected = false}
@@ -207,8 +207,6 @@ namespace ESP32UART {
 
     // 3. 전송 길이 확인 (매우 중요)
     // request 문자열의 정확한 길이를 전송
-    lastLine = ""
-    basic.pause(100)
     serial.writeString("AT+CIPSEND=" + request.length + "\r\n")
 
     if (!waitForPrompt(3000)) {
@@ -288,7 +286,7 @@ function waitForSendOK(timeoutMs: number): boolean {
         while (input.runningTime() < timeout) {
 
             // 비교 연산자 '='를 사용해야 합니다!
-            if (btConnected) {
+            if (btConnected = true) {
                 TFTGraph.drawStatus("BT CONNECTED", Color.DarkGreen)
                 return // 연결 성공 시 함수 종료
             } else {btConnected = false}
