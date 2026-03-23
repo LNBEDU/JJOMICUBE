@@ -235,9 +235,11 @@ namespace ESP32UART {
 }
 
 function waitForConnectOrOK(timeoutMs: number): boolean {
+
     let timeout = input.runningTime() + timeoutMs
 
     while (input.runningTime() < timeout) {
+        lastLine = serial.readUntil(serial.delimiters(Delimiters.NewLine))
         if (containsText(lastLine, "CONNECT")) return true
         if (containsText(lastLine, "OK")) return true
         if (containsText(lastLine, "ERROR")) return false
@@ -250,6 +252,7 @@ function waitForPrompt(timeoutMs: number): boolean {
     let timeout = input.runningTime() + timeoutMs
 
     while (input.runningTime() < timeout) {
+        lastLine = serial.readUntil(serial.delimiters(Delimiters.NewLine))
         if (containsText(lastLine, ">")) return true
         if (containsText(lastLine, "ERROR")) return false
         basic.pause(50)
@@ -261,6 +264,7 @@ function waitForSendOK(timeoutMs: number): boolean {
     let timeout = input.runningTime() + timeoutMs
 
     while (input.runningTime() < timeout) {
+        lastLine = serial.readUntil(serial.delimiters(Delimiters.NewLine))
         if (containsText(lastLine, "SEND OK")) return true
         if (containsText(lastLine, "ERROR")) return false
         basic.pause(50)
