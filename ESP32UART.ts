@@ -83,11 +83,12 @@ namespace ESP32UART {
     //% weight=97
     export function sendATWaitOK(cmd: string): void {
         lastLine = ""
-        serial.writeString(cmd + "\r\n")
+        
         //basic.pause(500)
 
         let timeout = input.runningTime() + 5000
-        while (input.runningTime() < timeout) {         
+        while (input.runningTime() < timeout) {       
+            serial.writeString(cmd + "\r\n")  
             let rawLine = serial.readUntil(serial.delimiters(Delimiters.NewLine))
                 updateConnectionStatus(rawLine)
                 lastLine = rawLine
