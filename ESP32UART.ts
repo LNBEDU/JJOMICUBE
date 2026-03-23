@@ -217,7 +217,7 @@ namespace ESP32UART {
     }
 
     // 4. 데이터 전송
-    serial.writeString(request)
+    sendATWaitOK(request)
 
     if (!waitForSendOK(5000)) {
         serial.writeString("AT+CIPCLOSE\r\n")
