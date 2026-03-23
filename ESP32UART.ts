@@ -15,6 +15,7 @@ namespace ESP32UART {
     }
 
     function containsText(src: string, key: string): boolean {
+        TFTGraph.drawStatus(src, Color.DarkGreen)
         return src.indexOf(key) >= 0
     }
 
