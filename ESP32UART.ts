@@ -199,25 +199,16 @@ namespace ESP32UART {
                   " HTTP/1.0\r\n\r\n" // 마지막에 빈 줄(\r\n\r\n) 필수!
 
     lastLine = ""
-    serial.writeString("AT+CIPCLOSE\r\n")
+    sendATWaitOK("AT+CIPCLOSE\r\n")
     basic.pause(300)
 
     // 2. TCP 연결
-    serial.writeString("AT+CIPSTART=\"TCP\",\"api.thingspeak.com\",80\r\n")
-    if (!waitForConnectOrOK(5000)) {
-        TFTGraph.drawStatus("TS TCP FAIL", Color.Red)
-        return
-    }
+    sendATWaitOK("AT+CIPSTART=\"TCP\",\"api.thingspeak.com\",80\r\n")
+    
 
     // 3. 전송 길이 확인 (매우 중요)
     // request 문자열의 정확한 길이를 전송
     serial.writeString("AT+CIPSEND=" + request.length + "\r\n")
-
-    if (!waitForPrompt(3000)) {
-        serial.writeString("AT+CIPCLOSE\r\n")
-        TFTGraph.drawStatus("TS READY FAIL", Color.Red)
-        return
-    }
 
     // 4. 데이터 전송
     serial.writeString(request)
@@ -239,11 +230,11 @@ function waitForConnectOrOK(timeoutMs: number): boolean {
     let timeout = input.runningTime() + timeoutMs
 
     while (input.runningTime() < timeout) {
-        lastLine = serial.readUntil(serial.delimiters(Delimiters.NewLine))
+        
         if (containsText(lastLine, "CONNECT")) return true
         if (containsText(lastLine, "OK")) return true
         if (containsText(lastLine, "ERROR")) return false
-        basic.pause(50)
+        //basic.pause(50)
     }
     return false
 }
