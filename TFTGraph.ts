@@ -21,6 +21,9 @@ namespace TFTGraph {
     let _yMinFixed = 0
     let _yMaxFixed = 1023
 
+    let _windowSec = 6
+    let _useWindowSec = false
+
     // --- 레이아웃 ---
     const W = 320
     const H = 240
@@ -65,6 +68,35 @@ namespace TFTGraph {
         return (a / b) >> 0
     }
 
+    function clamp(v: number, lo: number, hi: number): number {
+        if (v < lo) return lo
+        if (v > hi) return hi
+        return v
+    }
+
+    function getPlotLeft(): number {
+        return gx + 2
+    }
+
+    function getPlotRight(): number {
+        return gx + gw - _thickness - 2
+    }
+
+    function getPlotPixelCount(): number {
+        let cnt = getPlotRight() - getPlotLeft() + 1
+        if (cnt < 1) cnt = 1
+        return cnt
+    }
+
+    function updatePauseFromWindow(): void {
+        if (!_useWindowSec) return
+
+        let points = getPlotPixelCount()
+        let ms = idiv(_windowSec * 1000, points)
+        ms = clamp(ms, 5, 1000)
+        _pauseMs = ms
+    }
+
     /**
      * 상단 상태 표시줄에 메시지를 출력합니다.
      */
@@ -104,27 +136,62 @@ namespace TFTGraph {
         if (_smoothLevel < 0) _smoothLevel = 0
         if (_smoothLevel > 3) _smoothLevel = 3
 
-        if (speed == 0) _pauseMs = 20
-        else if (speed == 1) _pauseMs = 30
-        else _pauseMs = 60
+        if (!_useWindowSec) {
+            if (speed == 0) _pauseMs = 20
+            else if (speed == 1) _pauseMs = 30
+            else _pauseMs = 60
+        } else {
+            updatePauseFromWindow()
+        }
+    }
+
+    /**
+     * 보이는 그래프 시간 설정(초)
+     */
+    //% block="그래프 보이는 시간 %sec 초"
+    //% sec.min=1 sec.max=60 sec.defl=6
+    //% weight=94
+    export function setWindowSeconds(sec: number) {
+        _windowSec = clamp(sec, 1, 60)
+        _useWindowSec = true
+        updatePauseFromWindow()
+    }
+
+    /**
+     * 그래프 보이는 시간 자동(속도 설정 사용)
+     */
+    //% block="그래프 시간 자동"
+    //% weight=93
+    export function setWindowAuto() {
+        _useWindowSec = false
     }
 
     /**
      * Y축 고정 범위 설정
      */
     //% block="Y축 고정 최소 %vmin 최대 %vmax"
-    //% weight=94
+    //% weight=92
     export function setYFixed(vmin: number, vmax: number) {
+        if (vmax <= vmin) vmax = vmin + 1
         _yFixed = true
         _yMinFixed = vmin
         _yMaxFixed = vmax
     }
 
     /**
+     * Min Max 범위 설정
+     */
+    //% block="그래프 Min %vmin Max %vmax"
+    //% weight=91
+    export function setMinMax(vmin: number, vmax: number) {
+        setYFixed(vmin, vmax)
+    }
+
+    /**
      * Y축 자동 범위 설정
      */
     //% block="Y축 자동"
-    //% weight=93
+    //% weight=90
     export function setYAuto() {
         _yFixed = false
     }
@@ -149,6 +216,7 @@ namespace TFTGraph {
         plotTop1 = gy + 18
         plotH1 = gh - 22
 
+        updatePauseFromWindow()
         resetGraphState()
         clearSinglePlotArea()
         drawInfo1Labels()
@@ -186,6 +254,7 @@ namespace TFTGraph {
         plotTop2 = bottomY + 18
         plotH2 = sectionH - 22
 
+        updatePauseFromWindow()
         resetGraphState()
         clearSplitPlotArea()
         drawInfo2Labels()
@@ -251,10 +320,10 @@ namespace TFTGraph {
         if (min1 == max1) max1 = min1 + 1
         if (_mode == 2 && min2 == max2) max2 = min2 + 1
 
-        let plotLeft = gx + 2
-        let plotRight = gx + gw - _thickness - 2
-        let stepX = _thickness
-        let currX = plotLeft + xPos * stepX
+        let plotLeft = getPlotLeft()
+        let plotRight = getPlotRight()
+        let stepX = 1
+        let currX = plotLeft + xPos
 
         // 화면 끝까지 가면 그래프 영역만 지우고 다시 시작
         if (currX > plotRight) {
@@ -285,7 +354,7 @@ namespace TFTGraph {
         if (lastY1 >= 0) {
             drawPlotLine(currX - stepX, lastY1, currX, y1, Color.Cyan)
         } else {
-            drawVLine(currX, y1, y1, Color.Cyan)
+            drawDot(currX, y1, Color.Cyan)
         }
         lastY1 = y1
 
@@ -296,7 +365,7 @@ namespace TFTGraph {
             if (lastY2 >= 0) {
                 drawPlotLine(currX - stepX, lastY2, currX, y2, Color.Yellow)
             } else {
-                drawVLine(currX, y2, y2, Color.Yellow)
+                drawDot(currX, y2, Color.Yellow)
             }
             lastY2 = y2
         }
@@ -354,27 +423,34 @@ namespace TFTGraph {
         RBTFT20.drawRectangle(x, yStart, _thickness, h, color)
     }
 
+    function drawDot(x: number, y: number, color: Color) {
+        let half = idiv(_thickness - 1, 2)
+        RBTFT20.drawRectangle(x - half, y - half, _thickness, _thickness, color)
+    }
+
     function drawPlotLine(x0: number, y0: number, x1: number, y1: number, color: Color) {
-        if (x1 < x0) {
-            let tx = x0
-            x0 = x1
-            x1 = tx
+        let dx = Math.abs(x1 - x0)
+        let sx = x0 < x1 ? 1 : -1
+        let dy = -Math.abs(y1 - y0)
+        let sy = y0 < y1 ? 1 : -1
+        let err = dx + dy
 
-            let ty = y0
-            y0 = y1
-            y1 = ty
-        }
+        while (true) {
+            drawDot(x0, y0, color)
 
-        if (x0 == x1) {
-            drawVLine(x0, y0, y1, color)
-            return
-        }
+            if (x0 == x1 && y0 == y1) break
 
-        let dx = x1 - x0
-        for (let x = x0; x <= x1; x++) {
-            let t = (x - x0) / dx
-            let y = Math.round(y0 + (y1 - y0) * t)
-            drawVLine(x, y, y, color)
+            let e2 = err * 2
+
+            if (e2 >= dy) {
+                err += dy
+                x0 += sx
+            }
+
+            if (e2 <= dx) {
+                err += dx
+                y0 += sy
+            }
         }
     }
 
@@ -422,15 +498,12 @@ namespace TFTGraph {
     }
 
     function drawInfo1Values() {
-        // VAL 값 영역
         RBTFT20.drawRectangle(margin + 6, gy + 48, infoW - 16, 18, Color.Black)
         TFTFont.drawText5x7(margin + 6, gy + 48, "" + Math.round(f1), 2, Color.White, Color.Black)
 
-        // MIN 값 영역
         RBTFT20.drawRectangle(margin + 6, gy + 98, infoW - 16, 18, Color.Black)
         TFTFont.drawText5x7(margin + 6, gy + 98, "" + Math.round(min1), 2, Color.White, Color.Black)
 
-        // MAX 값 영역
         RBTFT20.drawRectangle(margin + 6, gy + 148, infoW - 16, 18, Color.Black)
         TFTFont.drawText5x7(margin + 6, gy + 148, "" + Math.round(max1), 2, Color.White, Color.Black)
     }
@@ -439,13 +512,11 @@ namespace TFTGraph {
     // 2분할 그래프 정보창
     // -----------------------------
     function drawInfo2Labels() {
-        // 위 정보창 라벨
         RBTFT20.drawRectangle(margin + 2, topY + 22, infoW - 6, 74, Color.Black)
         TFTFont.drawText5x7(margin + 6, topY + 24, "VAL", 2, Color.Cyan, Color.Black)
         TFTFont.drawText5x7(margin + 6, topY + 46, "MIN", 2, Color.Yellow, Color.Black)
         TFTFont.drawText5x7(margin + 6, topY + 68, "MAX", 2, Color.Yellow, Color.Black)
 
-        // 아래 정보창 라벨
         RBTFT20.drawRectangle(margin + 2, bottomY + 22, infoW - 6, 74, Color.Black)
         TFTFont.drawText5x7(margin + 6, bottomY + 24, "VAL", 2, Color.Cyan, Color.Black)
         TFTFont.drawText5x7(margin + 6, bottomY + 46, "MIN", 2, Color.Yellow, Color.Black)
@@ -453,7 +524,6 @@ namespace TFTGraph {
     }
 
     function drawInfo2Values() {
-        // 위 값 영역
         RBTFT20.drawRectangle(margin + 42, topY + 24, infoW - 50, 14, Color.Black)
         TFTFont.drawText5x7(margin + 42, topY + 24, "" + Math.round(f1), 2, Color.White, Color.Black)
 
@@ -463,7 +533,6 @@ namespace TFTGraph {
         RBTFT20.drawRectangle(margin + 42, topY + 68, infoW - 50, 14, Color.Black)
         TFTFont.drawText5x7(margin + 42, topY + 68, "" + Math.round(max1), 2, Color.White, Color.Black)
 
-        // 아래 값 영역
         RBTFT20.drawRectangle(margin + 42, bottomY + 24, infoW - 50, 14, Color.Black)
         TFTFont.drawText5x7(margin + 42, bottomY + 24, "" + Math.round(f2), 2, Color.White, Color.Black)
 
