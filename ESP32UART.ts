@@ -11,12 +11,6 @@ namespace ESP32UART {
         TFTFont.drawStatusIcons()
     }
 
-    function containsText(src: string, key: string): boolean {
-        if (!src) return false
-        TFTGraph.drawStatus(src, Color.DarkGreen)
-        return src.indexOf(key) >= 0
-    }
-
     function normalizeLine(s: string): string {
         if (!s) return ""
         while (s.indexOf("\r") >= 0) s = s.replace("\r", "")
@@ -24,7 +18,18 @@ namespace ESP32UART {
         return s.trim()
     }
 
-    export function updateConnectionStatus(data: string) {
+    function containsText(src: string, key: string): boolean {
+        if (!src) return false
+        return src.indexOf(key) >= 0
+    }
+
+    function showLine(line: string): void {
+        if (line && line.length > 0) {
+            TFTGraph.drawStatus(line, Color.DarkGreen)
+        }
+    }
+
+    export function updateConnectionStatus(data: string): void {
         let cleanData = normalizeLine(data)
 
         if (cleanData == "WIFI:1") {
@@ -44,19 +49,38 @@ namespace ESP32UART {
 
     function readOneLine(timeoutMs: number): string {
         let endTime = input.runningTime() + timeoutMs
-        let line = ""
 
         while (input.runningTime() < endTime) {
-            line = serial.readUntil(serial.delimiters(Delimiters.NewLine))
-            line = normalizeLine(line)
+            let raw = serial.readUntil(serial.delimiters(Delimiters.NewLine))
+            raw = normalizeLine(raw)
 
-            if (line.length > 0) {
-                updateConnectionStatus(line)
-                lastLine = line
-                return line
+            if (raw.length > 0) {
+                lastLine = raw
+                updateConnectionStatus(raw)
+                showLine(raw)
+                return raw
             }
+
             basic.pause(10)
         }
+
+        return ""
+    }
+
+    function waitForAny(timeoutMs: number, key1: string, key2: string): string {
+        let endTime = input.runningTime() + timeoutMs
+
+        while (input.runningTime() < endTime) {
+            let line = readOneLine(200)
+            if (line.length == 0) {
+                basic.pause(10)
+                continue
+            }
+
+            if (key1.length > 0 && containsText(line, key1)) return key1
+            if (key2.length > 0 && containsText(line, key2)) return key2
+        }
+
         return ""
     }
 
@@ -73,7 +97,14 @@ namespace ESP32UART {
         btConnected = false
         lastLine = ""
 
-        resetEsp32()
+        syncStatusIcons()
+
+        // ESP8266 호환형 부팅 메시지 정리용
+        basic.pause(300)
+
+        disconnectWifi()
+        basic.pause(100)
+        disconnectBluetooth()
         basic.pause(100)
     }
 
@@ -81,51 +112,108 @@ namespace ESP32UART {
      * Send raw AT command
      */
     //% block="send AT $cmd"
-    //% weight=99
-    export function sendAT(cmd: string): void {
-        serial.writeString(cmd + "\r\n")
-        basic.pause(300)
-    }
-
-    /**
-     * Reset ESP32 module
-     */
-    //% block="Reset ESP32"
     //% weight=98
-     export function resetEsp32(): void {
-        sendATWaitOK("AT+RST")
-        wifiConnected = false
-        btConnected = false
-        TFTGraph.drawStatus("Reset ESP32", Color.Red)
+    export function sendAT(cmd: string): void {
+        lastLine = ""
+        serial.writeString(cmd + "\r\n")
         basic.pause(200)
-        syncStatusIcons()
     }
 
     /**
-     * OK 응답이 올 때까지 대기하며 AT 명령 전송
+     * OK 또는 ERROR 응답 대기
      */
     //% block="send AT $cmd and wait for OK"
     //% weight=97
-    export function sendATWaitOK(cmd: string): void {
+    export function sendATWaitOK(cmd: string): boolean {
         lastLine = ""
         serial.writeString(cmd + "\r\n")
 
-        let timeout = input.runningTime() + 5000
+        let endTime = input.runningTime() + 5000
 
-        while (input.runningTime() < timeout) {
-            let rawLine = readOneLine(300)
-            if (rawLine.length == 0) {
+        while (input.runningTime() < endTime) {
+            let line = readOneLine(250)
+
+            if (line.length == 0) {
                 basic.pause(10)
                 continue
             }
 
-            if (containsText(rawLine, "OK")) return
-            if (containsText(rawLine, "ERROR")) return
-            if (containsText(rawLine, "SEND OK")) return
-            if (containsText(rawLine, "CONNECT")) return
+            if (containsText(line, "OK")) return true
+            if (containsText(line, "ERROR")) return false
+            if (containsText(line, "FAIL")) return false
 
             basic.pause(10)
         }
+
+        return false
+    }
+
+    /**
+     * CONNECT 또는 OK 응답 대기
+     */
+    function waitForConnectOrOK(timeoutMs: number): boolean {
+        let endTime = input.runningTime() + timeoutMs
+
+        while (input.runningTime() < endTime) {
+            let line = readOneLine(250)
+
+            if (line.length == 0) {
+                basic.pause(10)
+                continue
+            }
+
+            if (containsText(line, "CONNECT")) return true
+            if (containsText(line, "OK")) return true
+            if (containsText(line, "ALREADY CONNECTED")) return true
+            if (containsText(line, "ERROR")) return false
+            if (containsText(line, "FAIL")) return false
+        }
+
+        return false
+    }
+
+    /**
+     * > 프롬프트 대기
+     */
+    function waitForPrompt(timeoutMs: number): boolean {
+        let endTime = input.runningTime() + timeoutMs
+
+        while (input.runningTime() < endTime) {
+            let line = readOneLine(250)
+
+            if (line.length == 0) {
+                basic.pause(10)
+                continue
+            }
+
+            if (line == ">") return true
+            if (containsText(line, "ERROR")) return false
+            if (containsText(line, "FAIL")) return false
+        }
+
+        return false
+    }
+
+    /**
+     * SEND OK 응답 대기
+     */
+    function waitForSendOK(timeoutMs: number): boolean {
+        let endTime = input.runningTime() + timeoutMs
+
+        while (input.runningTime() < endTime) {
+            let line = readOneLine(250)
+
+            if (line.length == 0) {
+                basic.pause(10)
+                continue
+            }
+
+            if (containsText(line, "SEND OK")) return true
+            if (containsText(line, "ERROR")) return false
+            if (containsText(line, "FAIL")) return false
+        }
+
+        return false
     }
 
     /**
@@ -135,41 +223,60 @@ namespace ESP32UART {
     //% weight=90
     export function connectWifi(ssid: string, password: string): void {
         wifiConnected = false
-
-        sendATWaitOK("AT")
-        sendATWaitOK("AT+CWMODE=1")
-        sendATWaitOK("AT+CWJAP=\"" + ssid + "\",\"" + password + "\"")
+        syncStatusIcons()
 
         TFTGraph.drawStatus("WIFI CONNECTING...", Color.DarkGreen)
 
-        let timeout = input.runningTime() + 20000
+        if (!sendATWaitOK("AT")) {
+            TFTGraph.drawStatus("ESP NOT READY", Color.Red)
+            return
+        }
 
-        while (input.runningTime() < timeout) {
-            let rawLine = readOneLine(300)
+        if (!sendATWaitOK("AT+CWMODE=1")) {
+            TFTGraph.drawStatus("CWMODE FAIL", Color.Red)
+            return
+        }
 
-            if (rawLine.length > 0) {
-                if (rawLine == "WIFI:1" || rawLine.indexOf("WIFI CONNECTED") >= 0) {
-                    wifiConnected = true
-                    TFTGraph.drawStatus("WIFI CONNECTED", Color.DarkGreen)
-                    syncStatusIcons()
-                    return
-                }
-                if (rawLine.indexOf("ERROR") >= 0) {
-                    break
-                }
+        lastLine = ""
+        serial.writeString("AT+CWJAP=\"" + ssid + "\",\"" + password + "\"\r\n")
+
+        let endTime = input.runningTime() + 25000
+
+        while (input.runningTime() < endTime) {
+            let line = readOneLine(300)
+
+            if (line.length == 0) {
+                basic.pause(20)
+                continue
             }
 
-            if (wifiConnected) {
-                TFTGraph.drawStatus("WIFI CONNECTED", Color.DarkGreen)
+            if (line == "WIFI:1") {
+                wifiConnected = true
+                TFTGraph.drawStatus("WIFI CONNECTED", Color.Green)
                 syncStatusIcons()
                 return
             }
 
-            basic.pause(100)
+            if (containsText(line, "WIFI CONNECTED")) {
+                wifiConnected = true
+            }
+
+            if (containsText(line, "OK") && wifiConnected) {
+                TFTGraph.drawStatus("WIFI CONNECTED", Color.Green)
+                syncStatusIcons()
+                return
+            }
+
+            if (containsText(line, "FAIL") || containsText(line, "ERROR")) {
+                wifiConnected = false
+                TFTGraph.drawStatus("WIFI CONNECT FAIL", Color.Red)
+                syncStatusIcons()
+                return
+            }
         }
 
         wifiConnected = false
-        TFTGraph.drawStatus("WIFI ERROR: TIMEOUT", Color.Red)
+        TFTGraph.drawStatus("WIFI TIMEOUT", Color.Red)
         syncStatusIcons()
     }
 
@@ -182,7 +289,6 @@ namespace ESP32UART {
         sendATWaitOK("AT+CWQAP")
         wifiConnected = false
         TFTGraph.drawStatus("WIFI DISCONNECTED", Color.Red)
-        basic.pause(200)
         syncStatusIcons()
     }
 
@@ -201,26 +307,46 @@ namespace ESP32UART {
     //% block="check Wi-Fi status"
     //% weight=87
     export function checkWifiStatus(): boolean {
-        sendATWaitOK("AT+WIFISTATUS?")
+        lastLine = ""
+        serial.writeString("AT+WIFISTATUS?\r\n")
 
-        let timeout = input.runningTime() + 3000
-        while (input.runningTime() < timeout) {
-            let rawLine = readOneLine(200)
+        let endTime = input.runningTime() + 3000
 
-            if (rawLine == "WIFI:1") return true
-            if (rawLine == "WIFI:0") return false
+        while (input.runningTime() < endTime) {
+            let line = readOneLine(250)
 
-            basic.pause(20)
+            if (line.length == 0) {
+                basic.pause(10)
+                continue
+            }
+
+            if (line == "WIFI:1") {
+                wifiConnected = true
+                syncStatusIcons()
+                return true
+            }
+
+            if (line == "WIFI:0") {
+                wifiConnected = false
+                syncStatusIcons()
+                return false
+            }
         }
-        return false
+
+        return wifiConnected
     }
 
     /**
-     * ThingSpeak로 데이터를 전송합니다
+     * ThingSpeak로 데이터를 전송합니다 (ESP8266 호환 AT 흐름)
      */
     //% block="ThingSpeak send api key $apiKey field1 $f1 field2 $f2 field3 $f3"
     //% weight=86
     export function thingSpeakSend(apiKey: string, f1: number, f2: number, f3: number): void {
+        if (!wifiConnected) {
+            TFTGraph.drawStatus("WIFI NOT READY", Color.Red)
+            return
+        }
+
         let body =
             "field1=" + f1 +
             "&field2=" + f2 +
@@ -238,19 +364,23 @@ namespace ESP32UART {
             "\r\n" +
             body
 
-        if (!wifiConnected) {
-            TFTGraph.drawStatus("WIFI NOT READY", Color.Red)
+        TFTGraph.drawStatus("TS TCP START", Color.DarkGreen)
+
+        sendATWaitOK("AT+CIPCLOSE")
+        basic.pause(100)
+
+        lastLine = ""
+        serial.writeString("AT+CIPSTART=\"TCP\",\"api.thingspeak.com\",80\r\n")
+
+        if (!waitForConnectOrOK(5000)) {
+            serial.writeString("AT+CIPCLOSE\r\n")
+            TFTGraph.drawStatus("TCP CONNECT FAIL", Color.Red)
             return
         }
 
+        basic.pause(50)
+
         lastLine = ""
-
-        sendATWaitOK("AT+CIPCLOSE")
-        basic.pause(200)
-
-        sendATWaitOK("AT+CIPSTART=\"TCP\",\"api.thingspeak.com\",80")
-        basic.pause(100)
-
         serial.writeString("AT+CIPSEND=" + request.length + "\r\n")
 
         if (!waitForPrompt(3000)) {
@@ -261,51 +391,15 @@ namespace ESP32UART {
 
         serial.writeString(request)
 
-        if (!waitForSendOK(5000)) {
+        if (!waitForSendOK(6000)) {
             serial.writeString("AT+CIPCLOSE\r\n")
             TFTGraph.drawStatus("TS SEND FAIL", Color.Red)
             return
         }
 
-        basic.pause(1000)
+        basic.pause(500)
         serial.writeString("AT+CIPCLOSE\r\n")
         TFTGraph.drawStatus("TS SENT", Color.Green)
-    }
-
-    function waitForPrompt(timeoutMs: number): boolean {
-        let timeout = input.runningTime() + timeoutMs
-
-        while (input.runningTime() < timeout) {
-            let rawLine = readOneLine(200)
-            if (rawLine.length == 0) {
-                basic.pause(10)
-                continue
-            }
-
-            if (rawLine == ">") return true
-            if (containsText(rawLine, "ERROR")) return false
-
-            basic.pause(10)
-        }
-        return false
-    }
-
-    function waitForSendOK(timeoutMs: number): boolean {
-        let timeout = input.runningTime() + timeoutMs
-
-        while (input.runningTime() < timeout) {
-            let rawLine = readOneLine(300)
-            if (rawLine.length == 0) {
-                basic.pause(10)
-                continue
-            }
-
-            if (containsText(rawLine, "SEND OK")) return true
-            if (containsText(rawLine, "ERROR")) return false
-
-            basic.pause(10)
-        }
-        return false
     }
 
     /**
@@ -315,39 +409,50 @@ namespace ESP32UART {
     //% weight=80
     export function connectBluetoothByName(name: string): void {
         btConnected = false
-        lastLine = ""
-        serial.writeString("AT+BTCONNECT=\"" + name + "\"\r\n")
+        syncStatusIcons()
 
         TFTGraph.drawStatus("BT CONNECTING...", Color.DarkGreen)
 
-        let timeout = input.runningTime() + 20000
+        lastLine = ""
+        serial.writeString("AT+BTCONNECT=\"" + name + "\"\r\n")
 
-        while (input.runningTime() < timeout) {
-            let rawLine = readOneLine(300)
+        let endTime = input.runningTime() + 20000
 
-            if (rawLine.length > 0) {
-                if (rawLine == "BT:1" || rawLine.indexOf("BT CONNECTED") >= 0) {
-                    btConnected = true
-                    TFTGraph.drawStatus("BT CONNECTED", Color.DarkGreen)
-                    syncStatusIcons()
-                    return
-                }
-                if (rawLine.indexOf("ERROR") >= 0) {
-                    break
-                }
+        while (input.runningTime() < endTime) {
+            let line = readOneLine(300)
+
+            if (line.length == 0) {
+                basic.pause(20)
+                continue
             }
 
-            if (btConnected) {
-                TFTGraph.drawStatus("BT CONNECTED", Color.DarkGreen)
+            if (line == "BT:1") {
+                btConnected = true
+                TFTGraph.drawStatus("BT CONNECTED", Color.Green)
                 syncStatusIcons()
                 return
             }
 
-            basic.pause(100)
+            if (containsText(line, "BT CONNECTED")) {
+                btConnected = true
+            }
+
+            if (containsText(line, "OK") && btConnected) {
+                TFTGraph.drawStatus("BT CONNECTED", Color.Green)
+                syncStatusIcons()
+                return
+            }
+
+            if (containsText(line, "ERROR") || containsText(line, "FAIL")) {
+                btConnected = false
+                TFTGraph.drawStatus("BT CONNECT FAIL", Color.Red)
+                syncStatusIcons()
+                return
+            }
         }
 
         btConnected = false
-        TFTGraph.drawStatus("BT ERROR: TIMEOUT", Color.Red)
+        TFTGraph.drawStatus("BT TIMEOUT", Color.Red)
         syncStatusIcons()
     }
 
@@ -375,18 +480,33 @@ namespace ESP32UART {
     //% block="check Bluetooth status"
     //% weight=77
     export function checkBluetoothStatus(): boolean {
-        sendATWaitOK("AT+BTSTATUS?")
+        lastLine = ""
+        serial.writeString("AT+BTSTATUS?\r\n")
 
-        let timeout = input.runningTime() + 3000
-        while (input.runningTime() < timeout) {
-            let rawLine = readOneLine(200)
+        let endTime = input.runningTime() + 3000
 
-            if (rawLine == "BT:1") return true
-            if (rawLine == "BT:0") return false
+        while (input.runningTime() < endTime) {
+            let line = readOneLine(250)
 
-            basic.pause(20)
+            if (line.length == 0) {
+                basic.pause(10)
+                continue
+            }
+
+            if (line == "BT:1") {
+                btConnected = true
+                syncStatusIcons()
+                return true
+            }
+
+            if (line == "BT:0") {
+                btConnected = false
+                syncStatusIcons()
+                return false
+            }
         }
-        return false
+
+        return btConnected
     }
 
     /**
@@ -398,7 +518,6 @@ namespace ESP32UART {
         sendATWaitOK("AT+BTDISCONNECT")
         btConnected = false
         TFTGraph.drawStatus("BT DISCONNECTED", Color.Red)
-        basic.pause(100)
         syncStatusIcons()
     }
 
