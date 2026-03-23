@@ -83,21 +83,19 @@ namespace ESP32UART {
     //% weight=97
     export function sendATWaitOK(cmd: string): void {
         lastLine = ""
-        
+        serial.writeString(cmd + "\r\n")
         //basic.pause(500)
 
         let timeout = input.runningTime() + 5000
-
-        while (input.runningTime() < timeout) {
-            serial.writeString(cmd + "\r\n")
+        while (input.runningTime() < timeout) {         
             let rawLine = serial.readUntil(serial.delimiters(Delimiters.NewLine))
                 updateConnectionStatus(rawLine)
                 lastLine = rawLine
             if (containsText(lastLine, "OK")) {
                 return }
             if (containsText(lastLine, "ERROR")) return
-            basic.pause(500)
-            serial.writeString(cmd + "\r\n")
+            basic.pause(20)
+            
         }
     }
 
@@ -124,7 +122,7 @@ namespace ESP32UART {
         while (input.runningTime() < timeout) {
 
             // 비교 연산자 '='를 사용해야 합니다!
-            if (wifiConnected = true) {
+            if (wifiConnected) {
                 TFTGraph.drawStatus("WIFI CONNECTED", Color.DarkGreen)
                 return // 연결 성공 시 함수 종료
             } else {wifiConnected = false}
@@ -208,6 +206,8 @@ namespace ESP32UART {
 
     // 3. 전송 길이 확인 (매우 중요)
     // request 문자열의 정확한 길이를 전송
+    lastLine = ""
+    basic.pause(100)
     serial.writeString("AT+CIPSEND=" + request.length + "\r\n")
 
     if (!waitForPrompt(3000)) {
@@ -217,7 +217,7 @@ namespace ESP32UART {
     }
 
     // 4. 데이터 전송
-    sendATWaitOK(request)
+    serial.writeString(request)
 
     if (!waitForSendOK(5000)) {
         serial.writeString("AT+CIPCLOSE\r\n")
@@ -287,7 +287,7 @@ function waitForSendOK(timeoutMs: number): boolean {
         while (input.runningTime() < timeout) {
 
             // 비교 연산자 '='를 사용해야 합니다!
-            if (btConnected = true) {
+            if (btConnected) {
                 TFTGraph.drawStatus("BT CONNECTED", Color.DarkGreen)
                 return // 연결 성공 시 함수 종료
             } else {btConnected = false}
