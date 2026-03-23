@@ -190,58 +190,48 @@ namespace ESP32UART {
     //% block="ThingSpeak send api key $apiKey field1 $f1 field2 $f2 field3 $f3"
     //% weight=86
     export function thingSpeakSend(apiKey: string, f1: number, f2: number, f3: number): void {
-        let request =
-            "GET /update?api_key=" + apiKey +
-            "&field1=" + f1 +
-            "&field2=" + f2 +
-            "&field3=" + f3 +
-            " HTTP/1.1\r\n" +
-            "Host: api.thingspeak.com\r\n" +
-            "Connection: close\r\n" +
-            "\r\n"
+    // 1. 요청 메시지를 더 단순하고 명확하게 구성 (HTTP 1.0은 Host 헤더 없이도 동작하는 경우가 많아 더 안정적임)
+    let request = "GET /update?api_key=" + apiKey + 
+                  "&field1=" + f1 + 
+                  "&field2=" + f2 + 
+                  "&field3=" + f3 + 
+                  " HTTP/1.0\r\n\r\n" // 마지막에 빈 줄(\r\n\r\n) 필수!
 
-        // 응답 버퍼 초기화
-        lastLine = ""
+    lastLine = ""
+    serial.writeString("AT+CIPCLOSE\r\n")
+    basic.pause(300)
 
-        // 기존 연결 닫기
-        serial.writeString("AT+CIPCLOSE\r\n")
-        basic.pause(300)
-
-        // TCP 연결 시작
-        lastLine = ""
-        serial.writeString("AT+CIPSTART=\"TCP\",\"api.thingspeak.com\",80\r\n")
-
-        if (!waitForConnectOrOK(5000)) {
-            TFTGraph.drawStatus("TS TCP FAIL", Color.Red)
-            return
-        }
-
-        // 전송 길이 지정
-        lastLine = ""
-        serial.writeString("AT+CIPSEND=" + request.length + "\r\n")
-
-        if (!waitForPrompt(3000)) {
-            serial.writeString("AT+CIPCLOSE\r\n")
-            TFTGraph.drawStatus("TS READY FAIL", Color.Red)
-            return
-        }
-
-        // 실제 HTTP 요청 전송
-        lastLine = ""
-        serial.writeString(request)
-
-        if (!waitForSendOK(5000)) {
-            serial.writeString("AT+CIPCLOSE\r\n")
-            TFTGraph.drawStatus("TS SEND FAIL", Color.Red)
-            return
-        }
-
-        // 서버 응답 받을 시간
-        basic.pause(3000)
-
-        serial.writeString("AT+CIPCLOSE\r\n")
-        TFTGraph.drawStatus("TS SENT", Color.Green)
+    // 2. TCP 연결
+    serial.writeString("AT+CIPSTART=\"TCP\",\"api.thingspeak.com\",80\r\n")
+    if (!waitForConnectOrOK(5000)) {
+        TFTGraph.drawStatus("TS TCP FAIL", Color.Red)
+        return
     }
+
+    // 3. 전송 길이 확인 (매우 중요)
+    // request 문자열의 정확한 길이를 전송
+    serial.writeString("AT+CIPSEND=" + request.length + "\r\n")
+
+    if (!waitForPrompt(3000)) {
+        serial.writeString("AT+CIPCLOSE\r\n")
+        TFTGraph.drawStatus("TS READY FAIL", Color.Red)
+        return
+    }
+
+    // 4. 데이터 전송
+    serial.writeString(request)
+
+    if (!waitForSendOK(5000)) {
+        serial.writeString("AT+CIPCLOSE\r\n")
+        TFTGraph.drawStatus("TS SEND FAIL", Color.Red)
+        return
+    }
+
+    // 서버가 처리할 시간을 충분히 줌
+    basic.pause(2000)
+    serial.writeString("AT+CIPCLOSE\r\n")
+    TFTGraph.drawStatus("TS SENT", Color.Green)
+}
 
 function waitForConnectOrOK(timeoutMs: number): boolean {
     let timeout = input.runningTime() + timeoutMs
