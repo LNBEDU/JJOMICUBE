@@ -18,8 +18,6 @@ namespace JJOMICUBE {
         RBTFT20.init()
         RBTFT20.clearScreen()
         basic.pause(500);
-
-        TFTGraph.drawStatus("System Ready", Color.Green);
         
         // 2. 네오픽셀 초기화
         JJONeo.init(12, 40);
@@ -30,8 +28,10 @@ namespace JJOMICUBE {
         JJONeo.clear();
         basic.pause(500);
 
+        TFTGraph.drawStatus("System Ready", Color.Green);
+
         // 4. ESP32 UART 초기화
-        ESP32UART.initEsp32();
+        //ESP32UART.initEsp32();
         //basic.pause(500);
     }
 
