@@ -62,8 +62,6 @@ namespace JJONeo {
     /**
      * NeoPixel을 시작합니다 (P0 핀 고정).
      */
-    //% block="NeoPixel 시작 LED 수 $num 밝기 $brightness"
-    //% weight=100
     export function init(num: number, brightness: number): void {
         ledCount = clamp(num, 1, 64)
         strip = neopixel.create(DigitalPin.P0, ledCount, NeoPixelMode.RGB)
@@ -198,23 +196,6 @@ namespace JJONeo {
         let last = colors[ledCount - 1]
         for (let i = ledCount - 1; i > 0; i--) { colors[i] = colors[i - 1] }
         colors[0] = last
-        showAllStored()
-    }
-
-
-    /**
-     * 시계 방향으로 한 칸씩 회전시킵니다.
-     */
-    //% blockId=jjo_rotate_ccw
-    //% block="반시계 방향 회전"
-    //% weight=73
-    export function rotateCounterClockwise(): void {
-        if (!strip || ledCount <= 1) return
-        let first = colors[0]
-        for (let i = 0; i < ledCount - 1; i++) {
-            colors[i] = colors[i + 1]
-        }
-        colors[ledCount - 1] = first
         showAllStored()
     }
 
