@@ -192,7 +192,7 @@ namespace JJONeo {
      * 전체 색상
      */
     //% block="전체 색상 $color"
-    //% weight=87
+    //% weight=80
     export function setColor(color: number): void {
         if (!strip) return
         fillStored(color)
@@ -203,7 +203,7 @@ namespace JJONeo {
      * LED 범위 색상
      */
     //% block="LED $start 번부터 $end 번까지 색상 $color"
-    //% weight=86
+    //% weight=69
     export function setRangeColor(start: number, end: number, color: number): void {
         if (!strip) return
 
@@ -227,7 +227,7 @@ namespace JJONeo {
      * LED 한 개 색상
      */
     //% block="LED $index 번 색상 $color"
-    //% weight=85
+    //% weight=68
     export function setPixelColor(index: number, color: number): void {
         if (!strip) return
         index = clamp(index, 0, ledCount - 1)
@@ -239,7 +239,7 @@ namespace JJONeo {
      * LED 한 개만 색상 켜기
      */
     //% block="LED $index 번만 색상 $color"
-    //% weight=84
+    //% weight=66
     export function showOneColor(index: number, color: number): void {
         if (!strip) return
         index = clamp(index, 0, ledCount - 1)
@@ -252,7 +252,7 @@ namespace JJONeo {
      * LED 끄기
      */
     //% block="LED $index 번 끄기"
-    //% weight=83
+    //% weight=63
     export function clearPixel(index: number): void {
         if (!strip) return
         index = clamp(index, 0, ledCount - 1)
@@ -264,7 +264,7 @@ namespace JJONeo {
      * 시계 방향 회전
      */
     //% block="시계 방향 회전"
-    //% weight=80
+    //% weight=60
     export function rotateClockwise(): void {
         if (!strip || ledCount <= 1) return
 
@@ -280,7 +280,7 @@ namespace JJONeo {
      * 반시계 방향 회전
      */
     //% block="반시계 방향 회전"
-    //% weight=79
+    //% weight=59
     export function rotateCounterClockwise(): void {
         if (!strip || ledCount <= 1) return
 
@@ -296,7 +296,7 @@ namespace JJONeo {
      * 원형 무지개
      */
     //% block="원형 무지개"
-    //% weight=78
+    //% weight=58
     export function rainbow(): void {
         if (!strip) return
 
@@ -317,7 +317,7 @@ namespace JJONeo {
     //% end.min=0 end.max=63
     //% startHue.min=0 startHue.max=360
     //% endHue.min=0 endHue.max=360
-    //% weight=77
+    //% weight=57
     export function rainbowRangeHue(start: number, end: number, startHue: number, endHue: number): void {
         if (!strip) return
 
@@ -353,7 +353,7 @@ namespace JJONeo {
      * 전체 끄기
      */
     //% block="전체 끄기"
-    //% weight=60
+    //% weight=50
     export function clear(): void {
         if (!strip) return
         fillStored(packColor(0, 0, 0))
