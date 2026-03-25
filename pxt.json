@@ -1,6 +1,6 @@
 {
-    "name": "JJOMICUBE",
-    "description": "JJOMICUBE (LCD, NeoPixel, ADS1115, ESP32)",
+    "name": "jjomicube",
+    "description": "JJOMICUBE extension for LCD, NeoPixel, ADS1115, and ESP32",
     "license": "MIT",
     "dependencies": {
         "core": "*",
@@ -16,6 +16,12 @@
     ],
     "testFiles": [
         "test.ts"
+    ],
+    "supportedTargets": [
+        "microbit"
+    ],
+    "supportedEditors": [
+        "tsprj"
     ],
     "public": true
 }
