@@ -99,7 +99,6 @@ namespace ESP32UART {
 
         syncStatusIcons()
 
-        // ESP8266 호환형 부팅 메시지 정리용
         basic.pause(300)
 
         disconnectWifi()
@@ -225,15 +224,15 @@ namespace ESP32UART {
         wifiConnected = false
         syncStatusIcons()
 
-        TFTGraph.drawStatus("와이파이 연결중...", Color.DarkGreen)
+        TFTGraph.drawStatus("Connecting WIFI...", Color.DarkGreen)
 
         if (!sendATWaitOK("AT")) {
-            TFTGraph.drawStatus("ESP 준비 안됨", Color.Red)
+            TFTGraph.drawStatus("ESP NOT READY", Color.Red)
             return
         }
 
         if (!sendATWaitOK("AT+CWMODE=1")) {
-            TFTGraph.drawStatus("와이파이 모드 실패", Color.Red)
+            TFTGraph.drawStatus("WIFI MODE FAIL", Color.Red)
             return
         }
 
@@ -252,7 +251,7 @@ namespace ESP32UART {
 
             if (line == "WIFI:1") {
                 wifiConnected = true
-                TFTGraph.drawStatus("와이파이 연결됨", Color.Green)
+                TFTGraph.drawStatus("WIFI CONNECTED", Color.Green)
                 syncStatusIcons()
                 return
             }
@@ -262,21 +261,21 @@ namespace ESP32UART {
             }
 
             if (containsText(line, "OK") && wifiConnected) {
-                TFTGraph.drawStatus("와이파이 연결됨", Color.Green)
+                TFTGraph.drawStatus("WIFI CONNECTED", Color.Green)
                 syncStatusIcons()
                 return
             }
 
             if (containsText(line, "FAIL") || containsText(line, "ERROR")) {
                 wifiConnected = false
-                TFTGraph.drawStatus("와이파이 연결 실패", Color.Red)
+                TFTGraph.drawStatus("WIFI CONNECT FAIL", Color.Red)
                 syncStatusIcons()
                 return
             }
         }
 
         wifiConnected = false
-        TFTGraph.drawStatus("와이파이 시간초과", Color.Red)
+        TFTGraph.drawStatus("WIFI TIMEOUT", Color.Red)
         syncStatusIcons()
     }
 
@@ -288,7 +287,7 @@ namespace ESP32UART {
     export function disconnectWifi(): void {
         sendATWaitOK("AT+CWQAP")
         wifiConnected = false
-        TFTGraph.drawStatus("와이파이 해제됨", Color.Red)
+        TFTGraph.drawStatus("WIFI DISCONNECTED", Color.Red)
         syncStatusIcons()
     }
 
@@ -343,7 +342,7 @@ namespace ESP32UART {
     //% weight=86
     export function thingSpeakSend(apiKey: string, f1: number, f2: number, f3: number): void {
         if (!wifiConnected) {
-            TFTGraph.drawStatus("와이파이 준비 안됨", Color.Red)
+            TFTGraph.drawStatus("WIFI NOT READY", Color.Red)
             return
         }
 
@@ -364,7 +363,7 @@ namespace ESP32UART {
             "\r\n" +
             body
 
-        TFTGraph.drawStatus("TS TCP 시작", Color.DarkGreen)
+        TFTGraph.drawStatus("TS TCP START", Color.DarkGreen)
 
         sendATWaitOK("AT+CIPCLOSE")
         basic.pause(100)
@@ -374,7 +373,7 @@ namespace ESP32UART {
 
         if (!waitForConnectOrOK(5000)) {
             serial.writeString("AT+CIPCLOSE\r\n")
-            TFTGraph.drawStatus("TCP 연결 실패", Color.Red)
+            TFTGraph.drawStatus("TCP CONNECT FAIL", Color.Red)
             return
         }
 
@@ -385,7 +384,7 @@ namespace ESP32UART {
 
         if (!waitForPrompt(3000)) {
             serial.writeString("AT+CIPCLOSE\r\n")
-            TFTGraph.drawStatus("프롬프트 없음", Color.Red)
+            TFTGraph.drawStatus("NO PROMPT", Color.Red)
             return
         }
 
@@ -393,13 +392,13 @@ namespace ESP32UART {
 
         if (!waitForSendOK(6000)) {
             serial.writeString("AT+CIPCLOSE\r\n")
-            TFTGraph.drawStatus("TS 전송 실패", Color.Red)
+            TFTGraph.drawStatus("TS SEND FAIL", Color.Red)
             return
         }
 
         basic.pause(500)
         serial.writeString("AT+CIPCLOSE\r\n")
-        TFTGraph.drawStatus("TS 전송 완료", Color.Green)
+        TFTGraph.drawStatus("TS SEND OK", Color.Green)
     }
 
     /**
@@ -411,7 +410,7 @@ namespace ESP32UART {
         btConnected = false
         syncStatusIcons()
 
-        TFTGraph.drawStatus("블루투스 연결중...", Color.DarkGreen)
+        TFTGraph.drawStatus("BT CONNECTING...", Color.DarkGreen)
 
         lastLine = ""
         serial.writeString("AT+BTCONNECT=\"" + name + "\"\r\n")
@@ -428,7 +427,7 @@ namespace ESP32UART {
 
             if (line == "BT:1") {
                 btConnected = true
-                TFTGraph.drawStatus("블루투스 연결됨", Color.Green)
+                TFTGraph.drawStatus("BT CONNECTED", Color.Green)
                 syncStatusIcons()
                 return
             }
@@ -438,21 +437,21 @@ namespace ESP32UART {
             }
 
             if (containsText(line, "OK") && btConnected) {
-                TFTGraph.drawStatus("블루투스 연결됨", Color.Green)
+                TFTGraph.drawStatus("BT CONNECTED", Color.Green)
                 syncStatusIcons()
                 return
             }
 
             if (containsText(line, "ERROR") || containsText(line, "FAIL")) {
                 btConnected = false
-                TFTGraph.drawStatus("블루투스 연결 실패", Color.Red)
+                TFTGraph.drawStatus("BT CONNECT FAIL", Color.Red)
                 syncStatusIcons()
                 return
             }
         }
 
         btConnected = false
-        TFTGraph.drawStatus("블루투스 시간초과", Color.Red)
+        TFTGraph.drawStatus("BT TIMEOUT", Color.Red)
         syncStatusIcons()
     }
 
@@ -517,7 +516,7 @@ namespace ESP32UART {
     export function disconnectBluetooth(): void {
         sendATWaitOK("AT+BTDISCONNECT")
         btConnected = false
-        TFTGraph.drawStatus("블루투스 해제됨", Color.Red)
+        TFTGraph.drawStatus("BT DISCONNECTED", Color.Red)
         syncStatusIcons()
     }
 
