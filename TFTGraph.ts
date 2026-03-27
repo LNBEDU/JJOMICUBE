@@ -28,6 +28,9 @@ namespace TFTGraph {
     let _windowSec = 6
     let _useWindowSec = false
 
+    // 초기 자동 범위 여유값
+    let _autoRangePadding = 5
+
     // -----------------------------
     // 레이아웃
     // -----------------------------
@@ -69,9 +72,6 @@ namespace TFTGraph {
     let realMax1 = 0
     let realMin2 = 1023
     let realMax2 = 0
-
-    let tick = 0
-    const TEXT_EVERY = 6
 
     function idiv(a: number, b: number): number {
         return (a / b) >> 0
@@ -206,6 +206,16 @@ namespace TFTGraph {
     }
 
     /**
+     * 자동 범위 여유 설정
+     */
+    //% block="자동 범위 여유 %padding"
+    //% padding.min=1 padding.max=100 padding.defl=5
+    //% weight=89
+    export function setAutoRangePadding(padding: number) {
+        _autoRangePadding = clamp(padding, 1, 100)
+    }
+
+    /**
      * 단일 그래프 시작
      */
     //% block="그래프 시작 1개 핀 %pin 이름 %name"
@@ -333,6 +343,16 @@ namespace TFTGraph {
             plotMax1 = realMax1
             plotMin2 = realMin2
             plotMax2 = realMax2
+
+            // 초기에는 min=max가 되기 쉬우므로 즉시 반응하도록 여유 범위를 줌
+            if (plotMin1 == plotMax1) {
+                plotMin1 -= _autoRangePadding
+                plotMax1 += _autoRangePadding
+            }
+            if (_mode == 2 && plotMin2 == plotMax2) {
+                plotMin2 -= _autoRangePadding
+                plotMax2 += _autoRangePadding
+            }
         }
 
         if (plotMin1 == plotMax1) plotMax1 = plotMin1 + 1
@@ -388,11 +408,9 @@ namespace TFTGraph {
 
         xPos += 1
 
-        if (++tick >= TEXT_EVERY) {
-            tick = 0
-            if (_mode == 1) drawInfo1Values()
-            else drawInfo2Values()
-        }
+        // 값/최소/최대 즉시 갱신
+        if (_mode == 1) drawInfo1Values()
+        else drawInfo2Values()
 
         basic.pause(_pauseMs)
     }
@@ -408,7 +426,6 @@ namespace TFTGraph {
         realMax1 = 0
         realMin2 = 1023
         realMax2 = 0
-        tick = 0
     }
 
     function layoutCommon() {
