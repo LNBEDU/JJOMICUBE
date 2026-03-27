@@ -15,14 +15,14 @@ namespace TFTGraph {
 
     let _thickness = 2
     let _smoothLevel = 2
-    let _pauseMs = 5
+    let _pauseMs = 30
 
     let _yFixed = false
     let _yMinFixed = 0
     let _yMaxFixed = 1023
 
     let _windowSec = 6
-    let _useWindowSec = false
+    let _useWindowSec = true
     let _autoRangePadding = 5
 
     const W = 320
@@ -47,9 +47,9 @@ namespace TFTGraph {
     let plotTop2 = 0
     let plotH2 = 0
 
-    let xPos = 0
     let lastY1 = -1
     let lastY2 = -1
+    let lastX = -1
 
     let f1 = 0
     let f2 = 0
@@ -60,15 +60,14 @@ namespace TFTGraph {
     let realMin2 = 1023
     let realMax2 = 0
 
-    // 시간축용
-    let _sampleMs = 30
-    let _lastPlotMs = 0
-
-    // 축 표시용 현재 범위 저장
     let _currPlotMin1 = 0
     let _currPlotMax1 = 1023
     let _currPlotMin2 = 0
     let _currPlotMax2 = 1023
+
+    // 시간축용
+    let _graphStartMs = 0
+    let _windowMs = 6000
 
     function idiv(a: number, b: number): number {
         return (a / b) >> 0
@@ -94,14 +93,11 @@ namespace TFTGraph {
         return cnt
     }
 
-    function updateTimingFromWindow(): void {
-        let points = getPlotPixelCount()
-
+    function updateWindowMs(): void {
         if (_useWindowSec) {
-            let ms = idiv(_windowSec * 1000, points)
-            _sampleMs = clamp(ms, 5, 1000)
+            _windowMs = clamp(_windowSec * 1000, 1000, 60000)
         } else {
-            _sampleMs = clamp(_pauseMs, 5, 1000)
+            _windowMs = clamp(getPlotPixelCount() * _pauseMs, 1000, 60000)
         }
     }
 
@@ -147,7 +143,8 @@ namespace TFTGraph {
         else if (speed == 1) _pauseMs = 30
         else _pauseMs = 60
 
-        updateTimingFromWindow()
+        updateWindowMs()
+        redrawAxes()
     }
 
     //% block="그래프 보이는 시간 %sec 초"
@@ -156,7 +153,7 @@ namespace TFTGraph {
     export function setWindowSeconds(sec: number) {
         _windowSec = clamp(sec, 1, 60)
         _useWindowSec = true
-        updateTimingFromWindow()
+        updateWindowMs()
         redrawAxes()
     }
 
@@ -164,7 +161,7 @@ namespace TFTGraph {
     //% weight=93
     export function setWindowAuto() {
         _useWindowSec = false
-        updateTimingFromWindow()
+        updateWindowMs()
         redrawAxes()
     }
 
@@ -216,7 +213,7 @@ namespace TFTGraph {
         plotH1 = gh - 54
 
         resetGraphState()
-        updateTimingFromWindow()
+        updateWindowMs()
         clearSinglePlotArea()
         drawInfo1Labels()
         drawInfo1Values()
@@ -251,7 +248,7 @@ namespace TFTGraph {
         plotH2 = sectionH - 46
 
         resetGraphState()
-        updateTimingFromWindow()
+        updateWindowMs()
         clearSplitPlotArea()
         drawInfo2Labels()
         drawInfo2Values()
@@ -265,6 +262,7 @@ namespace TFTGraph {
         let v1 = pins.analogReadPin(_pin1)
         let v2 = (_mode == 2) ? pins.analogReadPin(_pin2) : 0
 
+        // 부드럽게 처리
         if (!fInit) {
             f1 = v1
             f2 = v2
@@ -280,131 +278,147 @@ namespace TFTGraph {
             }
         }
 
-        // 값 표시는 즉시 갱신
+        // 값 표시는 항상 즉시 갱신
         if (_mode == 1) drawInfo1Values()
         else drawInfo2Values()
 
         let now = input.runningTime()
-        if (_lastPlotMs == 0) {
-            _lastPlotMs = now
-            return
+
+        if (_graphStartMs == 0) {
+            _graphStartMs = now
         }
 
-        if (now - _lastPlotMs < _sampleMs) {
+        updateWindowMs()
+
+        let plotWidth = getPlotPixelCount()
+        let elapsed = now - _graphStartMs
+
+        // 한 화면 시간보다 오래 지나면 다음 화면으로 넘김
+        while (elapsed >= _windowMs) {
+            _graphStartMs += _windowMs
+            elapsed = now - _graphStartMs
+
+            if (_mode == 1) clearSinglePlotArea()
+            else clearSplitPlotArea()
+
+            lastX = -1
+            lastY1 = -1
+            lastY2 = -1
+
+            realMin1 = f1
+            realMax1 = f1
+            if (_mode == 2) {
+                realMin2 = f2
+                realMax2 = f2
+            }
+        }
+
+        let currRelX = idiv(elapsed * plotWidth, _windowMs)
+        currRelX = clamp(currRelX, 0, plotWidth - 1)
+
+        // 현재 윈도우 최소/최대 갱신
+        if (lastX < 0) {
+            realMin1 = f1
+            realMax1 = f1
+            if (_mode == 2) {
+                realMin2 = f2
+                realMax2 = f2
+            }
+        } else {
+            if (f1 < realMin1) realMin1 = f1
+            if (f1 > realMax1) realMax1 = f1
+
+            if (_mode == 2) {
+                if (f2 < realMin2) realMin2 = f2
+                if (f2 > realMax2) realMax2 = f2
+            }
+        }
+
+        let plotMin1 = 0
+        let plotMax1 = 0
+        let plotMin2 = 0
+        let plotMax2 = 0
+
+        if (_yFixed) {
+            plotMin1 = _yMinFixed
+            plotMax1 = _yMaxFixed
+            plotMin2 = _yMinFixed
+            plotMax2 = _yMaxFixed
+        } else {
+            plotMin1 = realMin1
+            plotMax1 = realMax1
+            plotMin2 = realMin2
+            plotMax2 = realMax2
+
+            if (plotMin1 == plotMax1) {
+                plotMin1 -= _autoRangePadding
+                plotMax1 += _autoRangePadding
+            }
+            if (_mode == 2 && plotMin2 == plotMax2) {
+                plotMin2 -= _autoRangePadding
+                plotMax2 += _autoRangePadding
+            }
+        }
+
+        if (plotMin1 == plotMax1) plotMax1 = plotMin1 + 1
+        if (_mode == 2 && plotMin2 == plotMax2) plotMax2 = plotMin2 + 1
+
+        _currPlotMin1 = plotMin1
+        _currPlotMax1 = plotMax1
+        _currPlotMin2 = plotMin2
+        _currPlotMax2 = plotMax2
+
+        // 아직 같은 x칸이면 축만 갱신
+        if (currRelX == lastX) {
+            drawAxes()
             basic.pause(1)
             return
         }
 
-        // 밀린 시간만큼 여러 칸 따라잡기
-        while (now - _lastPlotMs >= _sampleMs) {
-            _lastPlotMs += _sampleMs
+        let currX = getPlotLeft() + currRelX
 
-            if (xPos == 0) {
-                realMin1 = f1
-                realMax1 = f1
-                if (_mode == 2) {
-                    realMin2 = f2
-                    realMax2 = f2
-                }
+        let y1 = mapToYForPlot(f1, plotMin1, plotMax1, plotTop1, plotH1)
+        if (lastX >= 0 && lastY1 >= 0) {
+            drawPlotLine(getPlotLeft() + lastX, lastY1, currX, y1, TFT20.cyan())
+        } else {
+            drawDot(currX, y1, TFT20.cyan())
+        }
+        lastY1 = y1
+
+        if (_mode == 2) {
+            let y2 = mapToYForPlot(f2, plotMin2, plotMax2, plotTop2, plotH2)
+            if (lastX >= 0 && lastY2 >= 0) {
+                drawPlotLine(getPlotLeft() + lastX, lastY2, currX, y2, TFT20.yellow())
             } else {
-                if (f1 < realMin1) realMin1 = f1
-                if (f1 > realMax1) realMax1 = f1
-
-                if (_mode == 2) {
-                    if (f2 < realMin2) realMin2 = f2
-                    if (f2 > realMax2) realMax2 = f2
-                }
+                drawDot(currX, y2, TFT20.yellow())
             }
-
-            let plotMin1 = 0
-            let plotMax1 = 0
-            let plotMin2 = 0
-            let plotMax2 = 0
-
-            if (_yFixed) {
-                plotMin1 = _yMinFixed
-                plotMax1 = _yMaxFixed
-                plotMin2 = _yMinFixed
-                plotMax2 = _yMaxFixed
-            } else {
-                plotMin1 = realMin1
-                plotMax1 = realMax1
-                plotMin2 = realMin2
-                plotMax2 = realMax2
-
-                if (plotMin1 == plotMax1) {
-                    plotMin1 -= _autoRangePadding
-                    plotMax1 += _autoRangePadding
-                }
-                if (_mode == 2 && plotMin2 == plotMax2) {
-                    plotMin2 -= _autoRangePadding
-                    plotMax2 += _autoRangePadding
-                }
-            }
-
-            if (plotMin1 == plotMax1) plotMax1 = plotMin1 + 1
-            if (_mode == 2 && plotMin2 == plotMax2) plotMax2 = plotMin2 + 1
-
-            _currPlotMin1 = plotMin1
-            _currPlotMax1 = plotMax1
-            _currPlotMin2 = plotMin2
-            _currPlotMax2 = plotMax2
-
-            let plotLeft = getPlotLeft()
-            let plotRight = getPlotRight()
-            let currX = plotLeft + xPos
-
-            if (currX > plotRight) {
-                if (_mode == 1) clearSinglePlotArea()
-                else clearSplitPlotArea()
-
-                xPos = 0
-                currX = plotLeft
-                lastY1 = -1
-                lastY2 = -1
-
-                realMin1 = f1
-                realMax1 = f1
-                if (_mode == 2) {
-                    realMin2 = f2
-                    realMax2 = f2
-                }
-            }
-
-            let y1 = mapToYForPlot(f1, plotMin1, plotMax1, plotTop1, plotH1)
-            if (lastY1 >= 0) drawPlotLine(currX - 1, lastY1, currX, y1, TFT20.cyan())
-            else drawDot(currX, y1, TFT20.cyan())
-            lastY1 = y1
-
-            if (_mode == 2) {
-                let y2 = mapToYForPlot(f2, plotMin2, plotMax2, plotTop2, plotH2)
-                if (lastY2 >= 0) drawPlotLine(currX - 1, lastY2, currX, y2, TFT20.yellow())
-                else drawDot(currX, y2, TFT20.yellow())
-                lastY2 = y2
-            }
-
-            xPos += 1
+            lastY2 = y2
         }
 
+        lastX = currRelX
         drawAxes()
     }
 
     function resetGraphState() {
-        xPos = 0
+        lastX = -1
         lastY1 = -1
         lastY2 = -1
+
         f1 = 0
         f2 = 0
         fInit = false
+
         realMin1 = 1023
         realMax1 = 0
         realMin2 = 1023
         realMax2 = 0
-        _lastPlotMs = 0
+
         _currPlotMin1 = 0
         _currPlotMax1 = 1023
         _currPlotMin2 = 0
         _currPlotMax2 = 1023
+
+        _graphStartMs = input.runningTime()
     }
 
     function layoutCommon() {
@@ -444,6 +458,7 @@ namespace TFTGraph {
         while (true) {
             drawDot(x0, y0, color)
             if (x0 == x1 && y0 == y1) break
+
             let e2 = err * 2
             if (e2 >= dy) {
                 err += dy
@@ -466,15 +481,15 @@ namespace TFTGraph {
         // X축
         TFT20.drawRectangle(left - 1, bottom + 2, right - left + 2, 1, TFT20.rgb(80, 80, 80))
 
-        // Y축 Min/Max
+        // Y축 Min / Max 표시
         TFT20.drawRectangle(gx + 2, areaTop, 22, 10, TFT20.black())
         TFT20.drawRectangle(gx + 2, bottom - 8, 22, 10, TFT20.black())
         TFTFont.drawText5x7(gx + 2, areaTop, formatNum(plotMax), 1, TFT20.yellow(), TFT20.black())
         TFTFont.drawText5x7(gx + 2, bottom - 8, formatNum(plotMin), 1, TFT20.yellow(), TFT20.black())
 
-        // X축 시간
+        // X축 시간 표시 (크기 2)
         let midX = idiv(left + right, 2)
-        let endSec = _useWindowSec ? _windowSec : idiv(getPlotPixelCount() * _sampleMs, 1000)
+        let endSec = _useWindowSec ? _windowSec : idiv(_windowMs, 1000)
 
         TFT20.drawRectangle(left - 2, bottom + 4, right - left + 4, 16, TFT20.black())
         TFTFont.drawText5x7(left - 2, bottom + 4, "0s", 2, TFT20.white(), TFT20.black())
