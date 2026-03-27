@@ -37,7 +37,7 @@ enum Color {
 }
 
 //% color=#1E90FF icon="\uf108" block="TFT 화면" weight=80
-namespace RBTFT20 {
+namespace TFT20 {
 
     // 가로형(90도) 기준 논리 좌표
     const TFTWIDTH = 320
@@ -218,7 +218,7 @@ namespace RBTFT20 {
     }
 
     /**
-     * 드롭다운 기본 색상 선택
+     * 드롭다운 색상 선택
      */
     //% block="색상 %color"
     //% weight=93
@@ -227,8 +227,7 @@ namespace RBTFT20 {
     }
 
     /**
-     * 기본 색상 반환
-     * 아래 함수들은 기존 코드 호환용
+     * 기존 코드 호환용 기본색 함수
      */
     //% block="기본색 검정"
     //% weight=92
