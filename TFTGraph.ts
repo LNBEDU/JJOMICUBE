@@ -511,14 +511,14 @@ namespace TFTGraph {
     }
 
     function drawInfo1Values() {
-        TFT20.drawRectangle(margin + 44, gy + 48, infoW - 54, 18, TFT20.black())
-        TFTFont.drawText5x7(margin + 44, gy + 48, "" + Math.round(f1), 2, TFT20.white(), TFT20.black())
+        TFT20.drawRectangle(margin + 18, gy + 48, infoW - 54, 18, TFT20.black())
+        TFTFont.drawText5x7(margin + 18, gy + 48, "" + Math.round(f1), 2, TFT20.white(), TFT20.black())
 
-        TFT20.drawRectangle(margin + 44, gy + 98, infoW - 54, 18, TFT20.black())
-        TFTFont.drawText5x7(margin + 44, gy + 98, "" + Math.round(realMin1), 2, TFT20.white(), TFT20.black())
+        TFT20.drawRectangle(margin + 18, gy + 98, infoW - 54, 18, TFT20.black())
+        TFTFont.drawText5x7(margin + 18, gy + 98, "" + Math.round(realMin1), 2, TFT20.white(), TFT20.black())
 
-        TFT20.drawRectangle(margin + 44, gy + 148, infoW - 54, 18, TFT20.black())
-        TFTFont.drawText5x7(margin + 44, gy + 148, "" + Math.round(realMax1), 2, TFT20.white(), TFT20.black())
+        TFT20.drawRectangle(margin + 18, gy + 148, infoW - 54, 18, TFT20.black())
+        TFTFont.drawText5x7(margin + 18, gy + 148, "" + Math.round(realMax1), 2, TFT20.white(), TFT20.black())
     }
 
     function drawInfo2Labels() {
