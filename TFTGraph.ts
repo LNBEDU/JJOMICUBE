@@ -517,9 +517,9 @@ namespace TFTGraph {
     function drawInfo1Labels() {
         RBTFT20.drawRectangle(margin + 2, gy + 24, infoW - 6, gh - 28, RBTFT20.black())
 
-        TFTFont.drawText5x7(margin + 6, gy + 26, "값", 2, RBTFT20.cyan(), RBTFT20.black())
-        TFTFont.drawText5x7(margin + 6, gy + 76, "최저", 2, RBTFT20.yellow(), RBTFT20.black())
-        TFTFont.drawText5x7(margin + 6, gy + 126, "최고", 2, RBTFT20.yellow(), RBTFT20.black())
+        TFTFont.drawText5x7(margin + 6, gy + 26, "Val", 2, RBTFT20.cyan(), RBTFT20.black())
+        TFTFont.drawText5x7(margin + 6, gy + 76, "Low", 2, RBTFT20.yellow(), RBTFT20.black())
+        TFTFont.drawText5x7(margin + 6, gy + 126, "High", 2, RBTFT20.yellow(), RBTFT20.black())
     }
 
     function drawInfo1Values() {
@@ -538,14 +538,14 @@ namespace TFTGraph {
     // -----------------------------
     function drawInfo2Labels() {
         RBTFT20.drawRectangle(margin + 2, topY + 22, infoW - 6, 74, RBTFT20.black())
-        TFTFont.drawText5x7(margin + 6, topY + 24, "값", 2, RBTFT20.cyan(), RBTFT20.black())
-        TFTFont.drawText5x7(margin + 6, topY + 46, "최저", 2, RBTFT20.yellow(), RBTFT20.black())
-        TFTFont.drawText5x7(margin + 6, topY + 68, "최고", 2, RBTFT20.yellow(), RBTFT20.black())
+        TFTFont.drawText5x7(margin + 6, topY + 24, "Val", 2, RBTFT20.cyan(), RBTFT20.black())
+        TFTFont.drawText5x7(margin + 6, topY + 46, "Low", 2, RBTFT20.yellow(), RBTFT20.black())
+        TFTFont.drawText5x7(margin + 6, topY + 68, "High", 2, RBTFT20.yellow(), RBTFT20.black())
 
         RBTFT20.drawRectangle(margin + 2, bottomY + 22, infoW - 6, 74, RBTFT20.black())
-        TFTFont.drawText5x7(margin + 6, bottomY + 24, "값", 2, RBTFT20.cyan(), RBTFT20.black())
-        TFTFont.drawText5x7(margin + 6, bottomY + 46, "최저", 2, RBTFT20.yellow(), RBTFT20.black())
-        TFTFont.drawText5x7(margin + 6, bottomY + 68, "최고", 2, RBTFT20.yellow(), RBTFT20.black())
+        TFTFont.drawText5x7(margin + 6, bottomY + 24, "Val", 2, RBTFT20.cyan(), RBTFT20.black())
+        TFTFont.drawText5x7(margin + 6, bottomY + 46, "Low", 2, RBTFT20.yellow(), RBTFT20.black())
+        TFTFont.drawText5x7(margin + 6, bottomY + 68, "High", 2, RBTFT20.yellow(), RBTFT20.black())
     }
 
     function drawInfo2Values() {
