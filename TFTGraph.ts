@@ -21,7 +21,7 @@ namespace TFTGraph {
     let _yMinFixed = 0
     let _yMaxFixed = 1023
 
-    let _windowSec = 6
+    let _windowSec = 30
     let _useWindowSec = true
     let _autoRangePadding = 5
 
