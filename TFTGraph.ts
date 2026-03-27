@@ -39,7 +39,7 @@ namespace TFTGraph {
     export const STATUS_H = 26
 
     let margin = 8
-    let infoW = 92
+    let infoW = 124   // 값 표시창 확대
     let gap = 10
 
     let gx = 0
@@ -502,6 +502,9 @@ namespace TFTGraph {
         return areaTop + (areaH - 1) - Math.round(n * (areaH - 1))
     }
 
+    // -----------------------------
+    // 단일 그래프 정보창
+    // -----------------------------
     function drawInfo1Labels() {
         TFT20.drawRectangle(margin + 2, gy + 24, infoW - 6, gh - 28, TFT20.black())
 
@@ -511,16 +514,20 @@ namespace TFTGraph {
     }
 
     function drawInfo1Values() {
-        TFT20.drawRectangle(margin + 18, gy + 48, infoW - 54, 18, TFT20.black())
-        TFTFont.drawText5x7(margin + 18, gy + 48, "" + Math.round(f1), 2, TFT20.white(), TFT20.black())
+        // 라벨 뒤가 아니라 오른쪽 숫자 영역만 넓게 지움
+        TFT20.drawRectangle(margin + 46, gy + 26, infoW - 54, 18, TFT20.black())
+        TFTFont.drawText5x7(margin + 46, gy + 26, "" + Math.round(f1), 2, TFT20.white(), TFT20.black())
 
-        TFT20.drawRectangle(margin + 18, gy + 98, infoW - 54, 18, TFT20.black())
-        TFTFont.drawText5x7(margin + 18, gy + 98, "" + Math.round(realMin1), 2, TFT20.white(), TFT20.black())
+        TFT20.drawRectangle(margin + 46, gy + 76, infoW - 54, 18, TFT20.black())
+        TFTFont.drawText5x7(margin + 46, gy + 76, "" + Math.round(realMin1), 2, TFT20.white(), TFT20.black())
 
-        TFT20.drawRectangle(margin + 18, gy + 148, infoW - 54, 18, TFT20.black())
-        TFTFont.drawText5x7(margin + 18, gy + 148, "" + Math.round(realMax1), 2, TFT20.white(), TFT20.black())
+        TFT20.drawRectangle(margin + 46, gy + 126, infoW - 54, 18, TFT20.black())
+        TFTFont.drawText5x7(margin + 46, gy + 126, "" + Math.round(realMax1), 2, TFT20.white(), TFT20.black())
     }
 
+    // -----------------------------
+    // 2분할 그래프 정보창
+    // -----------------------------
     function drawInfo2Labels() {
         TFT20.drawRectangle(margin + 2, topY + 22, infoW - 6, 74, TFT20.black())
         TFTFont.drawText5x7(margin + 6, topY + 24, "Val", 2, TFT20.cyan(), TFT20.black())
@@ -534,22 +541,22 @@ namespace TFTGraph {
     }
 
     function drawInfo2Values() {
-        TFT20.drawRectangle(margin + 44, topY + 24, infoW - 54, 14, TFT20.black())
-        TFTFont.drawText5x7(margin + 44, topY + 24, "" + Math.round(f1), 2, TFT20.white(), TFT20.black())
+        TFT20.drawRectangle(margin + 46, topY + 24, infoW - 54, 14, TFT20.black())
+        TFTFont.drawText5x7(margin + 46, topY + 24, "" + Math.round(f1), 2, TFT20.white(), TFT20.black())
 
-        TFT20.drawRectangle(margin + 44, topY + 46, infoW - 54, 14, TFT20.black())
-        TFTFont.drawText5x7(margin + 44, topY + 46, "" + Math.round(realMin1), 2, TFT20.white(), TFT20.black())
+        TFT20.drawRectangle(margin + 46, topY + 46, infoW - 54, 14, TFT20.black())
+        TFTFont.drawText5x7(margin + 46, topY + 46, "" + Math.round(realMin1), 2, TFT20.white(), TFT20.black())
 
-        TFT20.drawRectangle(margin + 44, topY + 68, infoW - 54, 14, TFT20.black())
-        TFTFont.drawText5x7(margin + 44, topY + 68, "" + Math.round(realMax1), 2, TFT20.white(), TFT20.black())
+        TFT20.drawRectangle(margin + 46, topY + 68, infoW - 54, 14, TFT20.black())
+        TFTFont.drawText5x7(margin + 46, topY + 68, "" + Math.round(realMax1), 2, TFT20.white(), TFT20.black())
 
-        TFT20.drawRectangle(margin + 44, bottomY + 24, infoW - 54, 14, TFT20.black())
-        TFTFont.drawText5x7(margin + 44, bottomY + 24, "" + Math.round(f2), 2, TFT20.white(), TFT20.black())
+        TFT20.drawRectangle(margin + 46, bottomY + 24, infoW - 54, 14, TFT20.black())
+        TFTFont.drawText5x7(margin + 46, bottomY + 24, "" + Math.round(f2), 2, TFT20.white(), TFT20.black())
 
-        TFT20.drawRectangle(margin + 44, bottomY + 46, infoW - 54, 14, TFT20.black())
-        TFTFont.drawText5x7(margin + 44, bottomY + 46, "" + Math.round(realMin2), 2, TFT20.white(), TFT20.black())
+        TFT20.drawRectangle(margin + 46, bottomY + 46, infoW - 54, 14, TFT20.black())
+        TFTFont.drawText5x7(margin + 46, bottomY + 46, "" + Math.round(realMin2), 2, TFT20.white(), TFT20.black())
 
-        TFT20.drawRectangle(margin + 44, bottomY + 68, infoW - 54, 14, TFT20.black())
-        TFTFont.drawText5x7(margin + 44, bottomY + 68, "" + Math.round(realMax2), 2, TFT20.white(), TFT20.black())
+        TFT20.drawRectangle(margin + 46, bottomY + 68, infoW - 54, 14, TFT20.black())
+        TFTFont.drawText5x7(margin + 46, bottomY + 68, "" + Math.round(realMax2), 2, TFT20.white(), TFT20.black())
     }
 }
