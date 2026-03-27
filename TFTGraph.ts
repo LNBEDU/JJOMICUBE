@@ -505,51 +505,51 @@ namespace TFTGraph {
     function drawInfo1Labels() {
         TFT20.drawRectangle(margin + 2, gy + 24, infoW - 6, gh - 28, TFT20.black())
 
-        TFTFont.drawText5x7(margin + 6, gy + 26, "Val.", 2, TFT20.cyan(), TFT20.black())
-        TFTFont.drawText5x7(margin + 6, gy + 76, "Min.", 2, TFT20.yellow(), TFT20.black())
-        TFTFont.drawText5x7(margin + 6, gy + 126, "Max.", 2, TFT20.yellow(), TFT20.black())
+        TFTFont.drawText5x7(margin + 6, gy + 26, "Val", 2, TFT20.cyan(), TFT20.black())
+        TFTFont.drawText5x7(margin + 6, gy + 76, "Min", 2, TFT20.yellow(), TFT20.black())
+        TFTFont.drawText5x7(margin + 6, gy + 126, "Max", 2, TFT20.yellow(), TFT20.black())
     }
 
     function drawInfo1Values() {
-        TFT20.drawRectangle(margin + 48, gy + 48, infoW - 54, 18, TFT20.black())
-        TFTFont.drawText5x7(margin + 48, gy + 48, "" + Math.round(f1), 2, TFT20.white(), TFT20.black())
+        TFT20.drawRectangle(margin + 46, gy + 48, infoW - 54, 18, TFT20.black())
+        TFTFont.drawText5x7(margin + 46, gy + 48, "" + Math.round(f1), 2, TFT20.white(), TFT20.black())
 
-        TFT20.drawRectangle(margin + 48, gy + 98, infoW - 54, 18, TFT20.black())
-        TFTFont.drawText5x7(margin + 48, gy + 98, "" + Math.round(realMin1), 2, TFT20.white(), TFT20.black())
+        TFT20.drawRectangle(margin + 46, gy + 98, infoW - 54, 18, TFT20.black())
+        TFTFont.drawText5x7(margin + 46, gy + 98, "" + Math.round(realMin1), 2, TFT20.white(), TFT20.black())
 
-        TFT20.drawRectangle(margin + 48, gy + 148, infoW - 54, 18, TFT20.black())
-        TFTFont.drawText5x7(margin + 48, gy + 148, "" + Math.round(realMax1), 2, TFT20.white(), TFT20.black())
+        TFT20.drawRectangle(margin + 46, gy + 148, infoW - 54, 18, TFT20.black())
+        TFTFont.drawText5x7(margin + 46, gy + 148, "" + Math.round(realMax1), 2, TFT20.white(), TFT20.black())
     }
 
     function drawInfo2Labels() {
         TFT20.drawRectangle(margin + 2, topY + 22, infoW - 6, 74, TFT20.black())
-        TFTFont.drawText5x7(margin + 6, topY + 24, "Val.", 2, TFT20.cyan(), TFT20.black())
-        TFTFont.drawText5x7(margin + 6, topY + 46, "Min.", 2, TFT20.yellow(), TFT20.black())
-        TFTFont.drawText5x7(margin + 6, topY + 68, "Max.", 2, TFT20.yellow(), TFT20.black())
+        TFTFont.drawText5x7(margin + 6, topY + 24, "Val", 2, TFT20.cyan(), TFT20.black())
+        TFTFont.drawText5x7(margin + 6, topY + 46, "Min", 2, TFT20.yellow(), TFT20.black())
+        TFTFont.drawText5x7(margin + 6, topY + 68, "Max", 2, TFT20.yellow(), TFT20.black())
 
         TFT20.drawRectangle(margin + 2, bottomY + 22, infoW - 6, 74, TFT20.black())
-        TFTFont.drawText5x7(margin + 6, bottomY + 24, "Val.", 2, TFT20.cyan(), TFT20.black())
-        TFTFont.drawText5x7(margin + 6, bottomY + 46, "Min.", 2, TFT20.yellow(), TFT20.black())
-        TFTFont.drawText5x7(margin + 6, bottomY + 68, "Max.", 2, TFT20.yellow(), TFT20.black())
+        TFTFont.drawText5x7(margin + 6, bottomY + 24, "Val", 2, TFT20.cyan(), TFT20.black())
+        TFTFont.drawText5x7(margin + 6, bottomY + 46, "Min", 2, TFT20.yellow(), TFT20.black())
+        TFTFont.drawText5x7(margin + 6, bottomY + 68, "Max", 2, TFT20.yellow(), TFT20.black())
     }
 
     function drawInfo2Values() {
-        TFT20.drawRectangle(margin + 48, topY + 24, infoW - 54, 14, TFT20.black())
-        TFTFont.drawText5x7(margin + 48, topY + 24, "" + Math.round(f1), 2, TFT20.white(), TFT20.black())
+        TFT20.drawRectangle(margin + 46, topY + 24, infoW - 54, 14, TFT20.black())
+        TFTFont.drawText5x7(margin + 46, topY + 24, "" + Math.round(f1), 2, TFT20.white(), TFT20.black())
 
-        TFT20.drawRectangle(margin + 48, topY + 46, infoW - 54, 14, TFT20.black())
-        TFTFont.drawText5x7(margin + 48, topY + 46, "" + Math.round(realMin1), 2, TFT20.white(), TFT20.black())
+        TFT20.drawRectangle(margin + 46, topY + 46, infoW - 54, 14, TFT20.black())
+        TFTFont.drawText5x7(margin + 46, topY + 46, "" + Math.round(realMin1), 2, TFT20.white(), TFT20.black())
 
-        TFT20.drawRectangle(margin + 48, topY + 68, infoW - 54, 14, TFT20.black())
-        TFTFont.drawText5x7(margin + 48, topY + 68, "" + Math.round(realMax1), 2, TFT20.white(), TFT20.black())
+        TFT20.drawRectangle(margin + 46, topY + 68, infoW - 54, 14, TFT20.black())
+        TFTFont.drawText5x7(margin + 46, topY + 68, "" + Math.round(realMax1), 2, TFT20.white(), TFT20.black())
 
-        TFT20.drawRectangle(margin + 48, bottomY + 24, infoW - 54, 14, TFT20.black())
-        TFTFont.drawText5x7(margin + 48, bottomY + 24, "" + Math.round(f2), 2, TFT20.white(), TFT20.black())
+        TFT20.drawRectangle(margin + 46, bottomY + 24, infoW - 54, 14, TFT20.black())
+        TFTFont.drawText5x7(margin + 46, bottomY + 24, "" + Math.round(f2), 2, TFT20.white(), TFT20.black())
 
-        TFT20.drawRectangle(margin + 48, bottomY + 46, infoW - 54, 14, TFT20.black())
-        TFTFont.drawText5x7(margin + 48, bottomY + 46, "" + Math.round(realMin2), 2, TFT20.white(), TFT20.black())
+        TFT20.drawRectangle(margin + 46, bottomY + 46, infoW - 54, 14, TFT20.black())
+        TFTFont.drawText5x7(margin + 46, bottomY + 46, "" + Math.round(realMin2), 2, TFT20.white(), TFT20.black())
 
-        TFT20.drawRectangle(margin + 48, bottomY + 68, infoW - 54, 14, TFT20.black())
-        TFTFont.drawText5x7(margin + 48, bottomY + 68, "" + Math.round(realMax2), 2, TFT20.white(), TFT20.black())
+        TFT20.drawRectangle(margin + 46, bottomY + 68, infoW - 54, 14, TFT20.black())
+        TFTFont.drawText5x7(margin + 46, bottomY + 68, "" + Math.round(realMax2), 2, TFT20.white(), TFT20.black())
     }
 }
