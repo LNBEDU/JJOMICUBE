@@ -10,7 +10,7 @@
         "JJOADS1115.ts",
         "ESP32UART.ts",
         "JJONeo.ts",
-        "RBTFT20.ts",
+        "TFT20.ts",
         "TFTGraph.ts",
         "TFTFont.ts"
     ],
