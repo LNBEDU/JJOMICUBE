@@ -37,7 +37,7 @@ namespace TFTFont {
         let err = dx + dy
 
         while (true) {
-            RBTFT20.drawPixel(x0, y0, color)
+            TFT20.drawPixel(x0, y0, color)
             if (x0 == x1 && y0 == y1) break
             let e2 = err << 1
             if (e2 >= dy) {
@@ -55,7 +55,7 @@ namespace TFTFont {
      * 와이파이/블루투스 상태 아이콘 표시
      */
     export function drawStatusIcons(): void {
-        RBTFT20.drawRectangle(268, 0, 50, TFTGraph.STATUS_H - 3, iconBgColor)
+        TFT20.drawRectangle(268, 0, 50, TFTGraph.STATUS_H - 3, iconBgColor)
 
         if (ESP32UART.wifiConnected == true) {
             drawWifiIcon(272, 0, iconOnColor)
@@ -74,37 +74,37 @@ namespace TFTFont {
      * 와이파이 아이콘
      */
     function drawWifiIcon(x: number, y: number, color: number): void {
-        RBTFT20.drawRectangle(x + 7, y + 11, 2, 2, color)
+        TFT20.drawRectangle(x + 7, y + 11, 2, 2, color)
 
-        RBTFT20.drawPixel(x + 5, y + 9, color)
-        RBTFT20.drawPixel(x + 6, y + 8, color)
-        RBTFT20.drawPixel(x + 7, y + 8, color)
-        RBTFT20.drawPixel(x + 8, y + 8, color)
-        RBTFT20.drawPixel(x + 9, y + 9, color)
+        TFT20.drawPixel(x + 5, y + 9, color)
+        TFT20.drawPixel(x + 6, y + 8, color)
+        TFT20.drawPixel(x + 7, y + 8, color)
+        TFT20.drawPixel(x + 8, y + 8, color)
+        TFT20.drawPixel(x + 9, y + 9, color)
 
-        RBTFT20.drawPixel(x + 3, y + 7, color)
-        RBTFT20.drawPixel(x + 4, y + 6, color)
-        RBTFT20.drawPixel(x + 5, y + 5, color)
-        RBTFT20.drawPixel(x + 6, y + 5, color)
-        RBTFT20.drawPixel(x + 7, y + 5, color)
-        RBTFT20.drawPixel(x + 8, y + 5, color)
-        RBTFT20.drawPixel(x + 9, y + 5, color)
-        RBTFT20.drawPixel(x + 10, y + 6, color)
-        RBTFT20.drawPixel(x + 11, y + 7, color)
+        TFT20.drawPixel(x + 3, y + 7, color)
+        TFT20.drawPixel(x + 4, y + 6, color)
+        TFT20.drawPixel(x + 5, y + 5, color)
+        TFT20.drawPixel(x + 6, y + 5, color)
+        TFT20.drawPixel(x + 7, y + 5, color)
+        TFT20.drawPixel(x + 8, y + 5, color)
+        TFT20.drawPixel(x + 9, y + 5, color)
+        TFT20.drawPixel(x + 10, y + 6, color)
+        TFT20.drawPixel(x + 11, y + 7, color)
 
-        RBTFT20.drawPixel(x + 1, y + 5, color)
-        RBTFT20.drawPixel(x + 2, y + 4, color)
-        RBTFT20.drawPixel(x + 3, y + 3, color)
-        RBTFT20.drawPixel(x + 4, y + 2, color)
-        RBTFT20.drawPixel(x + 5, y + 2, color)
-        RBTFT20.drawPixel(x + 6, y + 1, color)
-        RBTFT20.drawPixel(x + 7, y + 1, color)
-        RBTFT20.drawPixel(x + 8, y + 1, color)
-        RBTFT20.drawPixel(x + 9, y + 2, color)
-        RBTFT20.drawPixel(x + 10, y + 2, color)
-        RBTFT20.drawPixel(x + 11, y + 3, color)
-        RBTFT20.drawPixel(x + 12, y + 4, color)
-        RBTFT20.drawPixel(x + 13, y + 5, color)
+        TFT20.drawPixel(x + 1, y + 5, color)
+        TFT20.drawPixel(x + 2, y + 4, color)
+        TFT20.drawPixel(x + 3, y + 3, color)
+        TFT20.drawPixel(x + 4, y + 2, color)
+        TFT20.drawPixel(x + 5, y + 2, color)
+        TFT20.drawPixel(x + 6, y + 1, color)
+        TFT20.drawPixel(x + 7, y + 1, color)
+        TFT20.drawPixel(x + 8, y + 1, color)
+        TFT20.drawPixel(x + 9, y + 2, color)
+        TFT20.drawPixel(x + 10, y + 2, color)
+        TFT20.drawPixel(x + 11, y + 3, color)
+        TFT20.drawPixel(x + 12, y + 4, color)
+        TFT20.drawPixel(x + 13, y + 5, color)
     }
 
     /**
@@ -266,13 +266,13 @@ namespace TFTFont {
             const w = 6 * scale
             const h = 7 * scale
 
-            RBTFT20.drawRectangle(cursorX, y, w, h, bg)
+            TFT20.drawRectangle(cursorX, y, w, h, bg)
 
             for (let col = 0; col < 5; col++) {
                 const bits = colBitsOf(ch, col)
                 for (let row = 0; row < 7; row++) {
                     if (bits & (1 << row)) {
-                        RBTFT20.drawRectangle(
+                        TFT20.drawRectangle(
                             cursorX + col * scale,
                             y + row * scale,
                             scale,
@@ -324,7 +324,7 @@ namespace TFTFont {
     }
 
     function drawSegDigit(x: number, y: number, d: number, w: number, h: number, t: number, color: number, bg: number): void {
-        RBTFT20.drawRectangle(x, y, w, h, bg)
+        TFT20.drawRectangle(x, y, w, h, bg)
         if (d < 0 || d > 9) return
 
         const m = segMask(d)
@@ -338,13 +338,13 @@ namespace TFTFont {
         const hLen = w - 2 * t
         const vLen = idiv(h - 3 * t, 2)
 
-        if (m & (1 << 0)) RBTFT20.drawRectangle(left + t, top, hLen, t, color)
-        if (m & (1 << 1)) RBTFT20.drawRectangle(right - t, top + t, t, vLen, color)
-        if (m & (1 << 2)) RBTFT20.drawRectangle(right - t, mid + t, t, vLen, color)
-        if (m & (1 << 3)) RBTFT20.drawRectangle(left + t, bottom - t, hLen, t, color)
-        if (m & (1 << 4)) RBTFT20.drawRectangle(left, mid + t, t, vLen, color)
-        if (m & (1 << 5)) RBTFT20.drawRectangle(left, top + t, t, vLen, color)
-        if (m & (1 << 6)) RBTFT20.drawRectangle(left + t, mid, hLen, t, color)
+        if (m & (1 << 0)) TFT20.drawRectangle(left + t, top, hLen, t, color)
+        if (m & (1 << 1)) TFT20.drawRectangle(right - t, top + t, t, vLen, color)
+        if (m & (1 << 2)) TFT20.drawRectangle(right - t, mid + t, t, vLen, color)
+        if (m & (1 << 3)) TFT20.drawRectangle(left + t, bottom - t, hLen, t, color)
+        if (m & (1 << 4)) TFT20.drawRectangle(left, mid + t, t, vLen, color)
+        if (m & (1 << 5)) TFT20.drawRectangle(left, top + t, t, vLen, color)
+        if (m & (1 << 6)) TFT20.drawRectangle(left + t, mid, hLen, t, color)
     }
 
     /**
@@ -371,7 +371,7 @@ namespace TFTFont {
             const ch = s.charAt(i)
 
             if (ch == " ") {
-                RBTFT20.drawRectangle(cursorX, y, w, h, bg)
+                TFT20.drawRectangle(cursorX, y, w, h, bg)
             } else {
                 drawSegDigit(cursorX, y, ch.charCodeAt(0) - 48, w, h, t, color, bg)
             }
