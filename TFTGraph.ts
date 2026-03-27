@@ -60,9 +60,15 @@ namespace TFTGraph {
     let realMin2 = 1023
     let realMax2 = 0
 
-    // 실제 시간축용
+    // 시간축용
     let _sampleMs = 30
     let _lastPlotMs = 0
+
+    // 축 표시용 현재 범위 저장
+    let _currPlotMin1 = 0
+    let _currPlotMax1 = 1023
+    let _currPlotMin2 = 0
+    let _currPlotMax2 = 1023
 
     function idiv(a: number, b: number): number {
         return (a / b) >> 0
@@ -75,11 +81,11 @@ namespace TFTGraph {
     }
 
     function getPlotLeft(): number {
-        return gx + 2
+        return gx + 26
     }
 
     function getPlotRight(): number {
-        return gx + gw - _thickness - 2
+        return gx + gw - _thickness - 4
     }
 
     function getPlotPixelCount(): number {
@@ -97,6 +103,14 @@ namespace TFTGraph {
         } else {
             _sampleMs = clamp(_pauseMs, 5, 1000)
         }
+    }
+
+    function formatNum(v: number): string {
+        return "" + Math.round(v)
+    }
+
+    function formatSec(v: number): string {
+        return "" + Math.round(v) + "s"
     }
 
     //% block="상태 표시 메시지 %msg 색 %color"
@@ -143,6 +157,7 @@ namespace TFTGraph {
         _windowSec = clamp(sec, 1, 60)
         _useWindowSec = true
         updateTimingFromWindow()
+        redrawAxes()
     }
 
     //% block="그래프 시간 자동"
@@ -150,6 +165,7 @@ namespace TFTGraph {
     export function setWindowAuto() {
         _useWindowSec = false
         updateTimingFromWindow()
+        redrawAxes()
     }
 
     //% block="그래프 범위 최소 %vmin 최대 %vmax"
@@ -159,6 +175,7 @@ namespace TFTGraph {
         _yFixed = true
         _yMinFixed = vmin
         _yMaxFixed = vmax
+        redrawAxes()
     }
 
     //% block="그래프 Min %vmin Max %vmax"
@@ -171,6 +188,7 @@ namespace TFTGraph {
     //% weight=90
     export function setYAuto() {
         _yFixed = false
+        redrawAxes()
     }
 
     //% block="자동 범위 여유 %padding"
@@ -194,8 +212,8 @@ namespace TFTGraph {
         drawBox(gx, gy, gw, gh, TFT20.rgb(120, 120, 120))
         TFTFont.drawText5x7(margin + 6, gy + 6, _label1.toUpperCase(), 2, TFT20.cyan(), TFT20.black())
 
-        plotTop1 = gy + 18
-        plotH1 = gh - 22
+        plotTop1 = gy + 28
+        plotH1 = gh - 48
 
         resetGraphState()
         updateTimingFromWindow()
@@ -227,10 +245,10 @@ namespace TFTGraph {
         TFTFont.drawText5x7(margin + 6, topY + 6, _label1.toUpperCase(), 2, TFT20.cyan(), TFT20.black())
         TFTFont.drawText5x7(margin + 6, bottomY + 6, _label2.toUpperCase(), 2, TFT20.yellow(), TFT20.black())
 
-        plotTop1 = topY + 18
-        plotH1 = sectionH - 22
-        plotTop2 = bottomY + 18
-        plotH2 = sectionH - 22
+        plotTop1 = topY + 24
+        plotH1 = sectionH - 40
+        plotTop2 = bottomY + 24
+        plotH2 = sectionH - 40
 
         resetGraphState()
         updateTimingFromWindow()
@@ -262,7 +280,6 @@ namespace TFTGraph {
             }
         }
 
-        // 값 표시는 매번 즉시 갱신
         if (xPos == 0) {
             realMin1 = f1
             realMax1 = f1
@@ -319,6 +336,11 @@ namespace TFTGraph {
         if (plotMin1 == plotMax1) plotMax1 = plotMin1 + 1
         if (_mode == 2 && plotMin2 == plotMax2) plotMax2 = plotMin2 + 1
 
+        _currPlotMin1 = plotMin1
+        _currPlotMax1 = plotMax1
+        _currPlotMin2 = plotMin2
+        _currPlotMax2 = plotMax2
+
         let plotLeft = getPlotLeft()
         let plotRight = getPlotRight()
         let currX = plotLeft + xPos
@@ -354,6 +376,8 @@ namespace TFTGraph {
 
         xPos += 1
 
+        drawAxes()
+
         if (_mode == 1) drawInfo1Values()
         else drawInfo2Values()
     }
@@ -370,6 +394,10 @@ namespace TFTGraph {
         realMin2 = 1023
         realMax2 = 0
         _lastPlotMs = 0
+        _currPlotMin1 = 0
+        _currPlotMax1 = 1023
+        _currPlotMin2 = 0
+        _currPlotMax2 = 1023
     }
 
     function layoutCommon() {
@@ -421,10 +449,51 @@ namespace TFTGraph {
         }
     }
 
+    function drawAxesSingle(plotMin: number, plotMax: number, areaTop: number, areaH: number) {
+        let left = getPlotLeft()
+        let right = getPlotRight()
+        let bottom = areaTop + areaH - 1
+
+        // Y축
+        TFT20.drawRectangle(left - 1, areaTop, 1, areaH, TFT20.rgb(80, 80, 80))
+        // X축
+        TFT20.drawRectangle(left - 1, bottom + 2, right - left + 2, 1, TFT20.rgb(80, 80, 80))
+
+        // Y축 Min/Max 글씨
+        TFT20.drawRectangle(gx + 2, areaTop, 22, 10, TFT20.black())
+        TFT20.drawRectangle(gx + 2, bottom - 8, 22, 10, TFT20.black())
+        TFTFont.drawText5x7(gx + 2, areaTop, formatNum(plotMax), 1, TFT20.yellow(), TFT20.black())
+        TFTFont.drawText5x7(gx + 2, bottom - 8, formatNum(plotMin), 1, TFT20.yellow(), TFT20.black())
+
+        // X축 시간
+        let midX = idiv(left + right, 2)
+        let endSec = _useWindowSec ? _windowSec : idiv(getPlotPixelCount() * _sampleMs, 1000)
+
+        TFT20.drawRectangle(left - 2, bottom + 4, right - left + 4, 10, TFT20.black())
+        TFTFont.drawText5x7(left - 2, bottom + 4, "0s", 1, TFT20.white(), TFT20.black())
+        TFTFont.drawText5x7(midX - 8, bottom + 4, formatSec(endSec / 2), 1, TFT20.white(), TFT20.black())
+        TFTFont.drawText5x7(right - 14, bottom + 4, formatSec(endSec), 1, TFT20.white(), TFT20.black())
+    }
+
+    function drawAxes() {
+        if (_mode == 1) {
+            drawAxesSingle(_currPlotMin1, _currPlotMax1, plotTop1, plotH1)
+        } else {
+            drawAxesSingle(_currPlotMin1, _currPlotMax1, plotTop1, plotH1)
+            drawAxesSingle(_currPlotMin2, _currPlotMax2, plotTop2, plotH2)
+        }
+    }
+
+    function redrawAxes() {
+        if (!_started) return
+        drawAxes()
+    }
+
     function clearSinglePlotArea() {
         TFT20.drawRectangle(gx + 1, gy + 16, gw - 2, gh - 17, TFT20.black())
         drawBox(gx, gy, gw, gh, TFT20.rgb(120, 120, 120))
         TFTFont.drawText5x7(margin + 6, gy + 6, _label1.toUpperCase(), 2, TFT20.cyan(), TFT20.black())
+        drawAxes()
     }
 
     function clearSplitPlotArea() {
@@ -436,6 +505,7 @@ namespace TFTGraph {
 
         TFTFont.drawText5x7(margin + 6, topY + 6, _label1.toUpperCase(), 2, TFT20.cyan(), TFT20.black())
         TFTFont.drawText5x7(margin + 6, bottomY + 6, _label2.toUpperCase(), 2, TFT20.yellow(), TFT20.black())
+        drawAxes()
     }
 
     function mapToYForPlot(v: number, vmin: number, vmax: number, areaTop: number, areaH: number): number {
@@ -458,13 +528,13 @@ namespace TFTGraph {
 
     function drawInfo1Values() {
         TFT20.drawRectangle(margin + 46, gy + 26, infoW - 54, 18, TFT20.black())
-        TFTFont.drawText5x7(margin + 46, gy + 26, "" + Math.round(f1), 2, TFT20.white(), TFT20.black())
+        TFTFont.drawText5x7(margin + 46, gy + 26, formatNum(f1), 2, TFT20.white(), TFT20.black())
 
         TFT20.drawRectangle(margin + 46, gy + 76, infoW - 54, 18, TFT20.black())
-        TFTFont.drawText5x7(margin + 46, gy + 76, "" + Math.round(realMin1), 2, TFT20.white(), TFT20.black())
+        TFTFont.drawText5x7(margin + 46, gy + 76, formatNum(realMin1), 2, TFT20.white(), TFT20.black())
 
         TFT20.drawRectangle(margin + 46, gy + 126, infoW - 54, 18, TFT20.black())
-        TFTFont.drawText5x7(margin + 46, gy + 126, "" + Math.round(realMax1), 2, TFT20.white(), TFT20.black())
+        TFTFont.drawText5x7(margin + 46, gy + 126, formatNum(realMax1), 2, TFT20.white(), TFT20.black())
     }
 
     function drawInfo2Labels() {
@@ -481,21 +551,21 @@ namespace TFTGraph {
 
     function drawInfo2Values() {
         TFT20.drawRectangle(margin + 46, topY + 24, infoW - 54, 14, TFT20.black())
-        TFTFont.drawText5x7(margin + 46, topY + 24, "" + Math.round(f1), 2, TFT20.white(), TFT20.black())
+        TFTFont.drawText5x7(margin + 46, topY + 24, formatNum(f1), 2, TFT20.white(), TFT20.black())
 
         TFT20.drawRectangle(margin + 46, topY + 46, infoW - 54, 14, TFT20.black())
-        TFTFont.drawText5x7(margin + 46, topY + 46, "" + Math.round(realMin1), 2, TFT20.white(), TFT20.black())
+        TFTFont.drawText5x7(margin + 46, topY + 46, formatNum(realMin1), 2, TFT20.white(), TFT20.black())
 
         TFT20.drawRectangle(margin + 46, topY + 68, infoW - 54, 14, TFT20.black())
-        TFTFont.drawText5x7(margin + 46, topY + 68, "" + Math.round(realMax1), 2, TFT20.white(), TFT20.black())
+        TFTFont.drawText5x7(margin + 46, topY + 68, formatNum(realMax1), 2, TFT20.white(), TFT20.black())
 
         TFT20.drawRectangle(margin + 46, bottomY + 24, infoW - 54, 14, TFT20.black())
-        TFTFont.drawText5x7(margin + 46, bottomY + 24, "" + Math.round(f2), 2, TFT20.white(), TFT20.black())
+        TFTFont.drawText5x7(margin + 46, bottomY + 24, formatNum(f2), 2, TFT20.white(), TFT20.black())
 
         TFT20.drawRectangle(margin + 46, bottomY + 46, infoW - 54, 14, TFT20.black())
-        TFTFont.drawText5x7(margin + 46, bottomY + 46, "" + Math.round(realMin2), 2, TFT20.white(), TFT20.black())
+        TFTFont.drawText5x7(margin + 46, bottomY + 46, formatNum(realMin2), 2, TFT20.white(), TFT20.black())
 
         TFT20.drawRectangle(margin + 46, bottomY + 68, infoW - 54, 14, TFT20.black())
-        TFTFont.drawText5x7(margin + 46, bottomY + 68, "" + Math.round(realMax2), 2, TFT20.white(), TFT20.black())
+        TFTFont.drawText5x7(margin + 46, bottomY + 68, formatNum(realMax2), 2, TFT20.white(), TFT20.black())
     }
 }
