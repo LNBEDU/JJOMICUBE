@@ -229,56 +229,38 @@ namespace TFT20 {
     /**
      * 기존 코드 호환용 기본색 함수
      */
-    //% block="기본색 검정"
-    //% weight=92
     export function black(): number {
         return Color.Black
     }
 
-    //% block="기본색 흰색"
-    //% weight=91
     export function white(): number {
         return Color.White
     }
 
-    //% block="기본색 빨강"
-    //% weight=90
     export function red(): number {
         return Color.Red
     }
 
-    //% block="기본색 초록"
-    //% weight=89
     export function green(): number {
         return Color.Green
     }
 
-    //% block="기본색 파랑"
-    //% weight=88
     export function blue(): number {
         return Color.Blue
     }
 
-    //% block="기본색 노랑"
-    //% weight=87
     export function yellow(): number {
         return Color.Yellow
     }
 
-    //% block="기본색 청록"
-    //% weight=86
     export function cyan(): number {
         return Color.Cyan
     }
 
-    //% block="기본색 자홍"
-    //% weight=85
     export function magenta(): number {
         return Color.Magenta
     }
 
-    //% block="기본색 남색"
-    //% weight=84
     export function navy(): number {
         return Color.Navy
     }

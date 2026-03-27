@@ -2,6 +2,63 @@
  * JJOMICUBE NeoPixel Blocks
  * Ring 12 NeoPixel extension for micro:bit
  */
+
+// 네오픽셀용 RGB 색상 enum
+enum NeoColor {
+    //% block="검정"
+    Black = 0x000000,
+    //% block="남색"
+    Navy = 0x000080,
+    //% block="진초록"
+    DarkGreen = 0x008000,
+    //% block="진청록"
+    DarkCyan = 0x008080,
+    //% block="고동"
+    Maroon = 0x800000,
+    //% block="보라"
+    Purple = 0x800080,
+    //% block="올리브"
+    Olive = 0x808000,
+    //% block="연회색"
+    LightGrey = 0xC0C0C0,
+    //% block="진회색"
+    DarkGrey = 0x808080,
+    //% block="파랑"
+    Blue = 0x0000FF,
+    //% block="초록"
+    Green = 0x00FF00,
+    //% block="청록"
+    Cyan = 0x00FFFF,
+    //% block="빨강"
+    Red = 0xFF0000,
+    //% block="자홍"
+    Magenta = 0xFF00FF,
+    //% block="노랑"
+    Yellow = 0xFFFF00,
+    //% block="흰색"
+    White = 0xFFFFFF,
+    //% block="주황"
+    Orange = 0xFFA500,
+    //% block="분홍"
+    Pink = 0xFFC0CB,
+    //% block="하늘색"
+    SkyBlue = 0x87CEEB,
+    //% block="민트"
+    Mint = 0x98FF98,
+    //% block="라임"
+    Lime = 0x32CD32,
+    //% block="금색"
+    Gold = 0xFFD700,
+    //% block="은색"
+    Silver = 0xC0C0C0,
+    //% block="인디고"
+    Indigo = 0x4B0082,
+    //% block="청보라"
+    Violet = 0x8A2BE2,
+    //% block="청녹"
+    Aqua = 0x00FFFF
+}
+
 //% color="#ff7f24" icon="\uf110" block="JJONeo" weight=50
 namespace JJONeo {
 
@@ -99,10 +156,17 @@ namespace JJONeo {
     }
 
     /**
+     * 드롭다운 색상 선택
+     */
+    //% block="색상 $color"
+    //% weight=93
+    export function color(color: NeoColor): number {
+        return color as number
+    }
+
+    /**
      * 기본색 빨강
      */
-    //% block="기본색 빨강"
-    //% weight=93
     export function red(): number {
         return packColor(255, 0, 0)
     }
@@ -110,8 +174,6 @@ namespace JJONeo {
     /**
      * 기본색 초록
      */
-    //% block="기본색 초록"
-    //% weight=92
     export function green(): number {
         return packColor(0, 255, 0)
     }
@@ -119,8 +181,6 @@ namespace JJONeo {
     /**
      * 기본색 파랑
      */
-    //% block="기본색 파랑"
-    //% weight=91
     export function blue(): number {
         return packColor(0, 0, 255)
     }
@@ -128,8 +188,6 @@ namespace JJONeo {
     /**
      * 기본색 노랑
      */
-    //% block="기본색 노랑"
-    //% weight=90
     export function yellow(): number {
         return packColor(255, 255, 0)
     }
@@ -137,8 +195,6 @@ namespace JJONeo {
     /**
      * 기본색 흰색
      */
-    //% block="기본색 흰색"
-    //% weight=89
     export function white(): number {
         return packColor(255, 255, 255)
     }
@@ -146,53 +202,92 @@ namespace JJONeo {
     /**
      * 기본색 검정
      */
-    //% block="기본색 검정"
-    //% weight=88
     export function black(): number {
         return packColor(0, 0, 0)
     }
 
     /**
-    * 기본색 보라
-    */
-    //% block="기본색 보라"
-    //% weight=87
+     * 기본색 보라
+     */
     export function purple(): number {
         return packColor(128, 0, 128)
     }
 
     /**
-     * 기본색 청녹 (Cyan 계열)
+     * 기본색 청녹
      */
-    //% block="기본색 청녹"
-    //% weight=86
     export function cyan(): number {
         return packColor(0, 255, 255)
     }
 
     /**
-     * 기본색 자홍 (Magenta)
+     * 기본색 자홍
      */
-    //% block="기본색 자홍"
-    //% weight=85
     export function magenta(): number {
         return packColor(255, 0, 255)
     }
 
     /**
-     * 기본색 남색 (Indigo)
+     * 기본색 남색
      */
-    //% block="기본색 남색"
-    //% weight=84
     export function indigo(): number {
         return packColor(0, 0, 128)
+    }
+
+    /**
+     * 기본색 주황
+     */
+    export function orange(): number {
+        return packColor(255, 165, 0)
+    }
+
+    /**
+     * 기본색 분홍
+     */
+    export function pink(): number {
+        return packColor(255, 192, 203)
+    }
+
+    /**
+     * 기본색 하늘색
+     */
+    export function skyBlue(): number {
+        return packColor(135, 206, 235)
+    }
+
+    /**
+     * 기본색 민트
+     */
+    export function mint(): number {
+        return packColor(152, 255, 152)
+    }
+
+    /**
+     * 기본색 라임
+     */
+    export function lime(): number {
+        return packColor(50, 205, 50)
+    }
+
+    /**
+     * 기본색 금색
+     */
+    export function gold(): number {
+        return packColor(255, 215, 0)
+    }
+
+    /**
+     * 기본색 은색
+     */
+    export function silver(): number {
+        return packColor(192, 192, 192)
     }
 
     /**
      * 전체 색상
      */
     //% block="전체 색상 $color"
-    //% weight=80
+    //% weight=70
     export function setColor(color: number): void {
         if (!strip) return
         fillStored(color)
