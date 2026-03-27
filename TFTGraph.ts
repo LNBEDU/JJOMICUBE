@@ -213,7 +213,7 @@ namespace TFTGraph {
         TFTFont.drawText5x7(margin + 6, gy + 6, _label1.toUpperCase(), 2, TFT20.cyan(), TFT20.black())
 
         plotTop1 = gy + 28
-        plotH1 = gh - 48
+        plotH1 = gh - 54
 
         resetGraphState()
         updateTimingFromWindow()
@@ -246,9 +246,9 @@ namespace TFTGraph {
         TFTFont.drawText5x7(margin + 6, bottomY + 6, _label2.toUpperCase(), 2, TFT20.yellow(), TFT20.black())
 
         plotTop1 = topY + 24
-        plotH1 = sectionH - 40
+        plotH1 = sectionH - 46
         plotTop2 = bottomY + 24
-        plotH2 = sectionH - 40
+        plotH2 = sectionH - 46
 
         resetGraphState()
         updateTimingFromWindow()
@@ -280,106 +280,113 @@ namespace TFTGraph {
             }
         }
 
-        if (xPos == 0) {
-            realMin1 = f1
-            realMax1 = f1
-            if (_mode == 2) {
-                realMin2 = f2
-                realMax2 = f2
-            }
-        }
+        // 값 표시는 즉시 갱신
+        if (_mode == 1) drawInfo1Values()
+        else drawInfo2Values()
 
         let now = input.runningTime()
-        if (_lastPlotMs == 0) _lastPlotMs = now
+        if (_lastPlotMs == 0) {
+            _lastPlotMs = now
+            return
+        }
 
         if (now - _lastPlotMs < _sampleMs) {
-            if (_mode == 1) drawInfo1Values()
-            else drawInfo2Values()
             basic.pause(1)
             return
         }
-        _lastPlotMs = now
 
-        if (f1 < realMin1) realMin1 = f1
-        if (f1 > realMax1) realMax1 = f1
-        if (_mode == 2) {
-            if (f2 < realMin2) realMin2 = f2
-            if (f2 > realMax2) realMax2 = f2
-        }
+        // 밀린 시간만큼 여러 칸 따라잡기
+        while (now - _lastPlotMs >= _sampleMs) {
+            _lastPlotMs += _sampleMs
 
-        let plotMin1 = 0
-        let plotMax1 = 0
-        let plotMin2 = 0
-        let plotMax2 = 0
+            if (xPos == 0) {
+                realMin1 = f1
+                realMax1 = f1
+                if (_mode == 2) {
+                    realMin2 = f2
+                    realMax2 = f2
+                }
+            } else {
+                if (f1 < realMin1) realMin1 = f1
+                if (f1 > realMax1) realMax1 = f1
 
-        if (_yFixed) {
-            plotMin1 = _yMinFixed
-            plotMax1 = _yMaxFixed
-            plotMin2 = _yMinFixed
-            plotMax2 = _yMaxFixed
-        } else {
-            plotMin1 = realMin1
-            plotMax1 = realMax1
-            plotMin2 = realMin2
-            plotMax2 = realMax2
-
-            if (plotMin1 == plotMax1) {
-                plotMin1 -= _autoRangePadding
-                plotMax1 += _autoRangePadding
+                if (_mode == 2) {
+                    if (f2 < realMin2) realMin2 = f2
+                    if (f2 > realMax2) realMax2 = f2
+                }
             }
-            if (_mode == 2 && plotMin2 == plotMax2) {
-                plotMin2 -= _autoRangePadding
-                plotMax2 += _autoRangePadding
+
+            let plotMin1 = 0
+            let plotMax1 = 0
+            let plotMin2 = 0
+            let plotMax2 = 0
+
+            if (_yFixed) {
+                plotMin1 = _yMinFixed
+                plotMax1 = _yMaxFixed
+                plotMin2 = _yMinFixed
+                plotMax2 = _yMaxFixed
+            } else {
+                plotMin1 = realMin1
+                plotMax1 = realMax1
+                plotMin2 = realMin2
+                plotMax2 = realMax2
+
+                if (plotMin1 == plotMax1) {
+                    plotMin1 -= _autoRangePadding
+                    plotMax1 += _autoRangePadding
+                }
+                if (_mode == 2 && plotMin2 == plotMax2) {
+                    plotMin2 -= _autoRangePadding
+                    plotMax2 += _autoRangePadding
+                }
             }
-        }
 
-        if (plotMin1 == plotMax1) plotMax1 = plotMin1 + 1
-        if (_mode == 2 && plotMin2 == plotMax2) plotMax2 = plotMin2 + 1
+            if (plotMin1 == plotMax1) plotMax1 = plotMin1 + 1
+            if (_mode == 2 && plotMin2 == plotMax2) plotMax2 = plotMin2 + 1
 
-        _currPlotMin1 = plotMin1
-        _currPlotMax1 = plotMax1
-        _currPlotMin2 = plotMin2
-        _currPlotMax2 = plotMax2
+            _currPlotMin1 = plotMin1
+            _currPlotMax1 = plotMax1
+            _currPlotMin2 = plotMin2
+            _currPlotMax2 = plotMax2
 
-        let plotLeft = getPlotLeft()
-        let plotRight = getPlotRight()
-        let currX = plotLeft + xPos
+            let plotLeft = getPlotLeft()
+            let plotRight = getPlotRight()
+            let currX = plotLeft + xPos
 
-        if (currX > plotRight) {
-            if (_mode == 1) clearSinglePlotArea()
-            else clearSplitPlotArea()
+            if (currX > plotRight) {
+                if (_mode == 1) clearSinglePlotArea()
+                else clearSplitPlotArea()
 
-            xPos = 0
-            currX = plotLeft
-            lastY1 = -1
-            lastY2 = -1
+                xPos = 0
+                currX = plotLeft
+                lastY1 = -1
+                lastY2 = -1
 
-            realMin1 = f1
-            realMax1 = f1
+                realMin1 = f1
+                realMax1 = f1
+                if (_mode == 2) {
+                    realMin2 = f2
+                    realMax2 = f2
+                }
+            }
+
+            let y1 = mapToYForPlot(f1, plotMin1, plotMax1, plotTop1, plotH1)
+            if (lastY1 >= 0) drawPlotLine(currX - 1, lastY1, currX, y1, TFT20.cyan())
+            else drawDot(currX, y1, TFT20.cyan())
+            lastY1 = y1
+
             if (_mode == 2) {
-                realMin2 = f2
-                realMax2 = f2
+                let y2 = mapToYForPlot(f2, plotMin2, plotMax2, plotTop2, plotH2)
+                if (lastY2 >= 0) drawPlotLine(currX - 1, lastY2, currX, y2, TFT20.yellow())
+                else drawDot(currX, y2, TFT20.yellow())
+                lastY2 = y2
             }
+
+            xPos += 1
         }
-
-        let y1 = mapToYForPlot(f1, plotMin1, plotMax1, plotTop1, plotH1)
-        if (lastY1 >= 0) drawPlotLine(currX - 1, lastY1, currX, y1, TFT20.cyan())
-        else drawDot(currX, y1, TFT20.cyan())
-        lastY1 = y1
-
-        if (_mode == 2) {
-            let y2 = mapToYForPlot(f2, plotMin2, plotMax2, plotTop2, plotH2)
-            if (lastY2 >= 0) drawPlotLine(currX - 1, lastY2, currX, y2, TFT20.yellow())
-            else drawDot(currX, y2, TFT20.yellow())
-            lastY2 = y2
-        }
-
-        xPos += 1
 
         drawAxes()
-
-        if (_mode == 1) drawInfo1Values()
-        else drawInfo2Values()
     }
 
     function resetGraphState() {
@@ -459,7 +466,7 @@ namespace TFTGraph {
         // X축
         TFT20.drawRectangle(left - 1, bottom + 2, right - left + 2, 1, TFT20.rgb(80, 80, 80))
 
-        // Y축 Min/Max 글씨
+        // Y축 Min/Max
         TFT20.drawRectangle(gx + 2, areaTop, 22, 10, TFT20.black())
         TFT20.drawRectangle(gx + 2, bottom - 8, 22, 10, TFT20.black())
         TFTFont.drawText5x7(gx + 2, areaTop, formatNum(plotMax), 1, TFT20.yellow(), TFT20.black())
@@ -469,10 +476,10 @@ namespace TFTGraph {
         let midX = idiv(left + right, 2)
         let endSec = _useWindowSec ? _windowSec : idiv(getPlotPixelCount() * _sampleMs, 1000)
 
-        TFT20.drawRectangle(left - 2, bottom + 4, right - left + 4, 10, TFT20.black())
-        TFTFont.drawText5x7(left - 2, bottom + 4, "0s", 1, TFT20.white(), TFT20.black())
-        TFTFont.drawText5x7(midX - 8, bottom + 4, formatSec(endSec / 2), 1, TFT20.white(), TFT20.black())
-        TFTFont.drawText5x7(right - 14, bottom + 4, formatSec(endSec), 1, TFT20.white(), TFT20.black())
+        TFT20.drawRectangle(left - 2, bottom + 4, right - left + 4, 16, TFT20.black())
+        TFTFont.drawText5x7(left - 2, bottom + 4, "0s", 2, TFT20.white(), TFT20.black())
+        TFTFont.drawText5x7(midX - 12, bottom + 4, formatSec(endSec / 2), 2, TFT20.white(), TFT20.black())
+        TFTFont.drawText5x7(right - 24, bottom + 4, formatSec(endSec), 2, TFT20.white(), TFT20.black())
     }
 
     function drawAxes() {
