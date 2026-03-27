@@ -1,8 +1,8 @@
 // ===== 초기 설정 =====
-RBTFT20.init()
+TFT20.init()
 
 // 상태 메시지
-TFTGraph.drawStatus("시작 중...", RBTFT20.yellow())
+TFTGraph.drawStatus("시작 중...", TFT20.yellow())
 
 // ESP32 초기화
 ESP32UART.initEsp32()
@@ -23,13 +23,13 @@ basic.forever(function () {
         basic.showIcon(IconNames.Heart)
 
         // TFT 상태 표시
-        TFTGraph.drawStatus("와이파이 연결됨", RBTFT20.green())
+        TFTGraph.drawStatus("Connected WiFi", TFT20.green())
 
     } else {
 
         basic.showIcon(IconNames.No)
 
-        TFTGraph.drawStatus("와이파이 연결 안됨", RBTFT20.red())
+        TFTGraph.drawStatus("Disconnected WiFi", TFT20.red())
     }
 
     // 아이콘 업데이트
