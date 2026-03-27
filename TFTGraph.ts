@@ -455,25 +455,6 @@ namespace TFTGraph {
         return areaTop + (areaH - 1) - Math.round(n * (areaH - 1))
     }
 
-    function drawInfo1Labels() {
-        RBTFT20.drawRectangle(margin + 2, gy + 24, infoW - 6, gh - 28, RBTFT20.black())
-
-        TFTFont.drawText5x7(margin + 6, gy + 26, "Val.", 2, RBTFT20.cyan(), RBTFT20.black())
-        TFTFont.drawText5x7(margin + 6, gy + 76, "Min.", 2, RBTFT20.yellow(), RBTFT20.black())
-        TFTFont.drawText5x7(margin + 6, gy + 126, "Max.", 2, RBTFT20.yellow(), RBTFT20.black())
-    }
-
-    function drawInfo1Values() {
-        RBTFT20.drawRectangle(margin + 6, gy + 48, infoW - 16, 18, RBTFT20.black())
-        TFTFont.drawText5x7(margin + 6, gy + 48, "" + Math.round(f1), 2, RBTFT20.white(), RBTFT20.black())
-
-        RBTFT20.drawRectangle(margin + 6, gy + 98, infoW - 16, 18, RBTFT20.black())
-        TFTFont.drawText5x7(margin + 6, gy + 98, "" + Math.round(realMin1), 2, RBTFT20.white(), RBTFT20.black())
-
-        RBTFT20.drawRectangle(margin + 6, gy + 148, infoW - 16, 18, RBTFT20.black())
-        TFTFont.drawText5x7(margin + 6, gy + 148, "" + Math.round(realMax1), 2, RBTFT20.white(), RBTFT20.black())
-    }
-
     function drawInfo1Values() {
         // 숫자 영역만 지우기
         RBTFT20.drawRectangle(margin + 48, gy + 48, infoW - 54, 18, RBTFT20.black())
