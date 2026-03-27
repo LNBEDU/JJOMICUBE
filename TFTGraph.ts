@@ -5,9 +5,6 @@
 
 //% color=#FFAA00 icon="\uf201" block="TFT 그래프" weight=70
 namespace TFTGraph {
-    // -----------------------------
-    // 내부 상태
-    // -----------------------------
     let _started = false
     let _mode = 0 // 1=단일, 2=2분할
 
@@ -17,23 +14,17 @@ namespace TFTGraph {
     let _label2 = "P2"
 
     let _thickness = 2
-    let _smoothLevel = 2 // 0=없음, 1~3
+    let _smoothLevel = 2
     let _pauseMs = 30
 
-    // 그래프 범위 고정용
     let _yFixed = false
     let _yMinFixed = 0
     let _yMaxFixed = 1023
 
     let _windowSec = 6
     let _useWindowSec = false
-
-    // 초기 자동 범위 여유값
     let _autoRangePadding = 5
 
-    // -----------------------------
-    // 레이아웃
-    // -----------------------------
     const W = 320
     const H = 240
     export const STATUS_H = 26
@@ -56,9 +47,6 @@ namespace TFTGraph {
     let plotTop2 = 0
     let plotH2 = 0
 
-    // -----------------------------
-    // 그래프 상태
-    // -----------------------------
     let xPos = 0
     let lastY1 = -1
     let lastY2 = -1
@@ -67,7 +55,6 @@ namespace TFTGraph {
     let f2 = 0
     let fInit = false
 
-    // 실제 측정값 최소/최대
     let realMin1 = 1023
     let realMax1 = 0
     let realMin2 = 1023
@@ -99,18 +86,14 @@ namespace TFTGraph {
 
     function updatePauseFromWindow(): void {
         if (!_useWindowSec) return
-
         let points = getPlotPixelCount()
         let ms = idiv(_windowSec * 1000, points)
         ms = clamp(ms, 5, 1000)
         _pauseMs = ms
     }
 
-    /**
-     * 상단 상태 메시지 표시
-     */
     //% block="상태 표시 메시지 %msg 색 %color"
-    //% msg.defl="준비 완료"
+    //% msg.defl="Ready"
     //% weight=100
     export function drawStatus(msg: string, color: number) {
         if (!msg) msg = ""
@@ -127,9 +110,6 @@ namespace TFTGraph {
         TFTFont.drawText5x7(margin, 6, msg, 2, color, RBTFT20.black())
     }
 
-    /**
-     * 그래프 설정
-     */
     //% block="그래프 설정 선굵기 %thickness 부드러움 %smooth 속도 %speed"
     //% thickness.min=1 thickness.max=3 thickness.defl=2
     //% smooth.min=0 smooth.max=3 smooth.defl=2
@@ -154,9 +134,6 @@ namespace TFTGraph {
         }
     }
 
-    /**
-     * 그래프에 보이는 시간 설정
-     */
     //% block="그래프 보이는 시간 %sec 초"
     //% sec.min=1 sec.max=60 sec.defl=6
     //% weight=94
@@ -166,18 +143,12 @@ namespace TFTGraph {
         updatePauseFromWindow()
     }
 
-    /**
-     * 그래프 시간 자동
-     */
     //% block="그래프 시간 자동"
     //% weight=93
     export function setWindowAuto() {
         _useWindowSec = false
     }
 
-    /**
-     * Y축 고정 범위
-     */
     //% block="그래프 범위 최소 %vmin 최대 %vmax"
     //% weight=92
     export function setYFixed(vmin: number, vmax: number) {
@@ -187,27 +158,18 @@ namespace TFTGraph {
         _yMaxFixed = vmax
     }
 
-    /**
-     * 그래프 Min Max 설정
-     */
     //% block="그래프 Min %vmin Max %vmax"
     //% weight=91
     export function setMinMax(vmin: number, vmax: number) {
         setYFixed(vmin, vmax)
     }
 
-    /**
-     * Y축 자동 범위
-     */
     //% block="Y축 자동"
     //% weight=90
     export function setYAuto() {
         _yFixed = false
     }
 
-    /**
-     * 자동 범위 여유 설정
-     */
     //% block="자동 범위 여유 %padding"
     //% padding.min=1 padding.max=100 padding.defl=5
     //% weight=89
@@ -215,11 +177,8 @@ namespace TFTGraph {
         _autoRangePadding = clamp(padding, 1, 100)
     }
 
-    /**
-     * 단일 그래프 시작
-     */
     //% block="그래프 시작 1개 핀 %pin 이름 %name"
-    //% name.defl="센서"
+    //% name.defl="Sensor"
     //% weight=85
     export function start1(pin: AnalogPin, name: string) {
         _mode = 1
@@ -242,11 +201,8 @@ namespace TFTGraph {
         drawInfo1Values()
     }
 
-    /**
-     * 2분할 그래프 시작
-     */
     //% block="그래프 시작 2개 핀1 %pin1 이름1 %name1 핀2 %pin2 이름2 %name2"
-    //% name1.defl="센서A" name2.defl="센서B"
+    //% name1.defl="SensorA" name2.defl="SensorB"
     //% weight=84
     export function start2(pin1: AnalogPin, name1: string, pin2: AnalogPin, name2: string) {
         _mode = 2
@@ -280,9 +236,6 @@ namespace TFTGraph {
         drawInfo2Values()
     }
 
-    /**
-     * 그래프 업데이트
-     */
     //% block="그래프 업데이트"
     //% weight=80
     export function update() {
@@ -291,7 +244,6 @@ namespace TFTGraph {
         let v1 = pins.analogReadPin(_pin1)
         let v2 = (_mode == 2) ? pins.analogReadPin(_pin2) : 0
 
-        // 부드럽게 처리
         if (!fInit) {
             f1 = v1
             f2 = v2
@@ -309,7 +261,6 @@ namespace TFTGraph {
             }
         }
 
-        // 실제 측정 최소/최대 갱신
         if (xPos == 0) {
             realMin1 = f1
             realMax1 = f1
@@ -327,7 +278,6 @@ namespace TFTGraph {
             }
         }
 
-        // 그래프 표시용 범위 계산
         let plotMin1 = 0
         let plotMax1 = 0
         let plotMin2 = 0
@@ -344,7 +294,6 @@ namespace TFTGraph {
             plotMin2 = realMin2
             plotMax2 = realMax2
 
-            // 초기에는 min=max가 되기 쉬우므로 즉시 반응하도록 여유 범위를 줌
             if (plotMin1 == plotMax1) {
                 plotMin1 -= _autoRangePadding
                 plotMax1 += _autoRangePadding
@@ -363,7 +312,6 @@ namespace TFTGraph {
         let stepX = 1
         let currX = plotLeft + xPos
 
-        // 그래프 끝까지 가면 그래프만 지움
         if (currX > plotRight) {
             if (_mode == 1) {
                 clearSinglePlotArea()
@@ -384,7 +332,6 @@ namespace TFTGraph {
             }
         }
 
-        // 채널 1
         let y1 = mapToYForPlot(f1, plotMin1, plotMax1, plotTop1, plotH1)
 
         if (lastY1 >= 0) {
@@ -394,7 +341,6 @@ namespace TFTGraph {
         }
         lastY1 = y1
 
-        // 채널 2
         if (_mode == 2) {
             let y2 = mapToYForPlot(f2, plotMin2, plotMax2, plotTop2, plotH2)
 
@@ -408,7 +354,6 @@ namespace TFTGraph {
 
         xPos += 1
 
-        // 값/최소/최대 즉시 갱신
         if (_mode == 1) drawInfo1Values()
         else drawInfo2Values()
 
@@ -498,7 +443,6 @@ namespace TFTGraph {
         TFTFont.drawText5x7(margin + 6, bottomY + 6, _label2.toUpperCase(), 2, RBTFT20.yellow(), RBTFT20.black())
     }
 
-    // 그래프 표시용: 범위를 벗어나면 위/아래 끝까지만 그림
     function mapToYForPlot(v: number, vmin: number, vmax: number, areaTop: number, areaH: number): number {
         if (areaH < 2) return areaTop
         if (vmax <= vmin) return areaTop + (areaH >> 1)
@@ -511,15 +455,12 @@ namespace TFTGraph {
         return areaTop + (areaH - 1) - Math.round(n * (areaH - 1))
     }
 
-    // -----------------------------
-    // 단일 그래프 정보창
-    // -----------------------------
     function drawInfo1Labels() {
         RBTFT20.drawRectangle(margin + 2, gy + 24, infoW - 6, gh - 28, RBTFT20.black())
 
-        TFTFont.drawText5x7(margin + 6, gy + 26, "Val", 2, RBTFT20.cyan(), RBTFT20.black())
-        TFTFont.drawText5x7(margin + 6, gy + 76, "Min", 2, RBTFT20.yellow(), RBTFT20.black())
-        TFTFont.drawText5x7(margin + 6, gy + 126, "Max", 2, RBTFT20.yellow(), RBTFT20.black())
+        TFTFont.drawText5x7(margin + 6, gy + 26, "Val.", 2, RBTFT20.cyan(), RBTFT20.black())
+        TFTFont.drawText5x7(margin + 6, gy + 76, "Min.", 2, RBTFT20.yellow(), RBTFT20.black())
+        TFTFont.drawText5x7(margin + 6, gy + 126, "Max.", 2, RBTFT20.yellow(), RBTFT20.black())
     }
 
     function drawInfo1Values() {
@@ -533,38 +474,35 @@ namespace TFTGraph {
         TFTFont.drawText5x7(margin + 6, gy + 148, "" + Math.round(realMax1), 2, RBTFT20.white(), RBTFT20.black())
     }
 
-    // -----------------------------
-    // 2분할 그래프 정보창
-    // -----------------------------
-    function drawInfo2Labels() {
-        RBTFT20.drawRectangle(margin + 2, topY + 22, infoW - 6, 74, RBTFT20.black())
-        TFTFont.drawText5x7(margin + 6, topY + 24, "Val", 2, RBTFT20.cyan(), RBTFT20.black())
-        TFTFont.drawText5x7(margin + 6, topY + 46, "Min", 2, RBTFT20.yellow(), RBTFT20.black())
-        TFTFont.drawText5x7(margin + 6, topY + 68, "Max", 2, RBTFT20.yellow(), RBTFT20.black())
+    function drawInfo1Values() {
+        // 숫자 영역만 지우기
+        RBTFT20.drawRectangle(margin + 48, gy + 48, infoW - 54, 18, RBTFT20.black())
+        TFTFont.drawText5x7(margin + 48, gy + 48, "" + Math.round(f1), 2, RBTFT20.white(), RBTFT20.black())
 
-        RBTFT20.drawRectangle(margin + 2, bottomY + 22, infoW - 6, 74, RBTFT20.black())
-        TFTFont.drawText5x7(margin + 6, bottomY + 24, "Val", 2, RBTFT20.cyan(), RBTFT20.black())
-        TFTFont.drawText5x7(margin + 6, bottomY + 46, "Min", 2, RBTFT20.yellow(), RBTFT20.black())
-        TFTFont.drawText5x7(margin + 6, bottomY + 68, "Max", 2, RBTFT20.yellow(), RBTFT20.black())
+        RBTFT20.drawRectangle(margin + 48, gy + 98, infoW - 54, 18, RBTFT20.black())
+        TFTFont.drawText5x7(margin + 48, gy + 98, "" + Math.round(realMin1), 2, RBTFT20.white(), RBTFT20.black())
+
+        RBTFT20.drawRectangle(margin + 48, gy + 148, infoW - 54, 18, RBTFT20.black())
+        TFTFont.drawText5x7(margin + 48, gy + 148, "" + Math.round(realMax1), 2, RBTFT20.white(), RBTFT20.black())
     }
 
     function drawInfo2Values() {
-        RBTFT20.drawRectangle(margin + 42, topY + 24, infoW - 50, 14, RBTFT20.black())
-        TFTFont.drawText5x7(margin + 42, topY + 24, "" + Math.round(f1), 2, RBTFT20.white(), RBTFT20.black())
+        RBTFT20.drawRectangle(margin + 48, topY + 24, infoW - 54, 14, RBTFT20.black())
+        TFTFont.drawText5x7(margin + 48, topY + 24, "" + Math.round(f1), 2, RBTFT20.white(), RBTFT20.black())
 
-        RBTFT20.drawRectangle(margin + 42, topY + 46, infoW - 50, 14, RBTFT20.black())
-        TFTFont.drawText5x7(margin + 42, topY + 46, "" + Math.round(realMin1), 2, RBTFT20.white(), RBTFT20.black())
+        RBTFT20.drawRectangle(margin + 48, topY + 46, infoW - 54, 14, RBTFT20.black())
+        TFTFont.drawText5x7(margin + 48, topY + 46, "" + Math.round(realMin1), 2, RBTFT20.white(), RBTFT20.black())
 
-        RBTFT20.drawRectangle(margin + 42, topY + 68, infoW - 50, 14, RBTFT20.black())
-        TFTFont.drawText5x7(margin + 42, topY + 68, "" + Math.round(realMax1), 2, RBTFT20.white(), RBTFT20.black())
+        RBTFT20.drawRectangle(margin + 48, topY + 68, infoW - 54, 14, RBTFT20.black())
+        TFTFont.drawText5x7(margin + 48, topY + 68, "" + Math.round(realMax1), 2, RBTFT20.white(), RBTFT20.black())
 
-        RBTFT20.drawRectangle(margin + 42, bottomY + 24, infoW - 50, 14, RBTFT20.black())
-        TFTFont.drawText5x7(margin + 42, bottomY + 24, "" + Math.round(f2), 2, RBTFT20.white(), RBTFT20.black())
+        RBTFT20.drawRectangle(margin + 48, bottomY + 24, infoW - 54, 14, RBTFT20.black())
+        TFTFont.drawText5x7(margin + 48, bottomY + 24, "" + Math.round(f2), 2, RBTFT20.white(), RBTFT20.black())
 
-        RBTFT20.drawRectangle(margin + 42, bottomY + 46, infoW - 50, 14, RBTFT20.black())
-        TFTFont.drawText5x7(margin + 42, bottomY + 46, "" + Math.round(realMin2), 2, RBTFT20.white(), RBTFT20.black())
+        RBTFT20.drawRectangle(margin + 48, bottomY + 46, infoW - 54, 14, RBTFT20.black())
+        TFTFont.drawText5x7(margin + 48, bottomY + 46, "" + Math.round(realMin2), 2, RBTFT20.white(), RBTFT20.black())
 
-        RBTFT20.drawRectangle(margin + 42, bottomY + 68, infoW - 50, 14, RBTFT20.black())
-        TFTFont.drawText5x7(margin + 42, bottomY + 68, "" + Math.round(realMax2), 2, RBTFT20.white(), RBTFT20.black())
+        RBTFT20.drawRectangle(margin + 48, bottomY + 68, infoW - 54, 14, RBTFT20.black())
+        TFTFont.drawText5x7(margin + 48, bottomY + 68, "" + Math.round(realMax2), 2, RBTFT20.white(), RBTFT20.black())
     }
 }
