@@ -29,7 +29,7 @@ namespace TFTGraph {
     export const STATUS_H = 26
 
     let margin = 8
-    let infoW = 104   // 기존보다 약 한 글자 정도 축소
+    let infoW = 80   // 기존보다 약 한 글자 정도 축소
     let gap = 10
 
     let gx = 0
