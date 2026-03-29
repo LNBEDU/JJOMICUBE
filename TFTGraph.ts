@@ -1,6 +1,7 @@
 /**
  * TFT 그래프 + 상태 표시 패키지
  * ST7789 320x240 전용
+ * ThingSpeak 스타일: 업데이트 때 값/계산식을 직접 넣는 구조
  */
 
 //% color=#FFAA00 icon="\uf201" block="TFT 그래프" weight=70
@@ -8,8 +9,6 @@ namespace TFTGraph {
     let _started = false
     let _mode = 0 // 1=단일, 2=2분할
 
-    let _pin1: AnalogPin = AnalogPin.P1
-    let _pin2: AnalogPin = AnalogPin.P2
     let _label1 = "P1"
     let _label2 = "P2"
 
@@ -55,9 +54,9 @@ namespace TFTGraph {
     let f2 = 0
     let fInit = false
 
-    let realMin1 = 1023
+    let realMin1 = 0
     let realMax1 = 0
-    let realMin2 = 1023
+    let realMin2 = 0
     let realMax2 = 0
 
     let _currPlotMin1 = 0
@@ -195,15 +194,44 @@ namespace TFTGraph {
         _autoRangePadding = clamp(padding, 1, 100)
     }
 
-    //% block="그래프 시작 1개 핀 %pin 이름 %name"
+    //% block="그래프 시작 1개 이름 %name"
     //% name.defl="센서"
     //% weight=85
-    export function start1(pin: AnalogPin, name: string) {
+    export function start1(name: string) {
         _mode = 1
-        _pin1 = pin
         _label1 = name
         _started = true
 
+        initSingleLayout()
+    }
+
+    //% block="그래프 시작 2개 이름1 %name1 이름2 %name2"
+    //% name1.defl="센서A" name2.defl="센서B"
+    //% weight=84
+    export function start2(name1: string, name2: string) {
+        _mode = 2
+        _label1 = name1
+        _label2 = name2
+        _started = true
+
+        initSplitLayout()
+    }
+
+    //% block="그래프 업데이트 값 %v"
+    //% weight=80
+    export function update(v: number) {
+        if (!_started) return
+        updateCore(v, 0)
+    }
+
+    //% block="그래프 업데이트 값1 %v1 값2 %v2"
+    //% weight=79
+    export function update2(v1: number, v2: number) {
+        if (!_started) return
+        updateCore(v1, v2)
+    }
+
+    function initSingleLayout() {
         layoutCommon()
 
         drawBox(gx, gy, gw, gh, TFT20.rgb(120, 120, 120))
@@ -219,17 +247,7 @@ namespace TFTGraph {
         drawInfo1Values()
     }
 
-    //% block="그래프 시작 2개 핀1 %pin1 이름1 %name1 핀2 %pin2 이름2 %name2"
-    //% name1.defl="센서A" name2.defl="센서B"
-    //% weight=84
-    export function start2(pin1: AnalogPin, name1: string, pin2: AnalogPin, name2: string) {
-        _mode = 2
-        _pin1 = pin1
-        _label1 = name1
-        _pin2 = pin2
-        _label2 = name2
-        _started = true
-
+    function initSplitLayout() {
         layoutCommon()
 
         sectionH = idiv(gh - gap, 2)
@@ -254,19 +272,17 @@ namespace TFTGraph {
         drawInfo2Values()
     }
 
-    //% block="그래프 업데이트"
-    //% weight=80
-    export function update() {
-        if (!_started) return
-
-        let v1 = pins.analogReadPin(_pin1)
-        let v2 = (_mode == 2) ? pins.analogReadPin(_pin2) : 0
-
+    function updateCore(v1: number, v2: number) {
         // 부드럽게 처리
         if (!fInit) {
             f1 = v1
             f2 = v2
             fInit = true
+
+            realMin1 = f1
+            realMax1 = f1
+            realMin2 = f2
+            realMax2 = f2
         } else {
             let w = (_smoothLevel == 1) ? 2 : (_smoothLevel == 2) ? 4 : (_smoothLevel == 3) ? 6 : 0
             if (w > 0) {
@@ -277,10 +293,6 @@ namespace TFTGraph {
                 if (_mode == 2) f2 = v2
             }
         }
-
-        // 값 표시는 항상 즉시 갱신
-        if (_mode == 1) drawInfo1Values()
-        else drawInfo2Values()
 
         let now = input.runningTime()
 
@@ -293,7 +305,6 @@ namespace TFTGraph {
         let plotWidth = getPlotPixelCount()
         let elapsed = now - _graphStartMs
 
-        // 한 화면 시간보다 오래 지나면 다음 화면으로 넘김
         while (elapsed >= _windowMs) {
             _graphStartMs += _windowMs
             elapsed = now - _graphStartMs
@@ -316,7 +327,6 @@ namespace TFTGraph {
         let currRelX = idiv(elapsed * plotWidth, _windowMs)
         currRelX = clamp(currRelX, 0, plotWidth - 1)
 
-        // 현재 윈도우 최소/최대 갱신
         if (lastX < 0) {
             realMin1 = f1
             realMax1 = f1
@@ -354,6 +364,7 @@ namespace TFTGraph {
                 plotMin1 -= _autoRangePadding
                 plotMax1 += _autoRangePadding
             }
+
             if (_mode == 2 && plotMin2 == plotMax2) {
                 plotMin2 -= _autoRangePadding
                 plotMax2 += _autoRangePadding
@@ -368,7 +379,9 @@ namespace TFTGraph {
         _currPlotMin2 = plotMin2
         _currPlotMax2 = plotMax2
 
-        // 아직 같은 x칸이면 축만 갱신
+        if (_mode == 1) drawInfo1Values()
+        else drawInfo2Values()
+
         if (currRelX == lastX) {
             drawAxes()
             basic.pause(1)
@@ -408,9 +421,9 @@ namespace TFTGraph {
         f2 = 0
         fInit = false
 
-        realMin1 = 1023
+        realMin1 = 0
         realMax1 = 0
-        realMin2 = 1023
+        realMin2 = 0
         realMax2 = 0
 
         _currPlotMin1 = 0
@@ -482,12 +495,12 @@ namespace TFTGraph {
         TFT20.drawRectangle(left - 1, bottom + 2, right - left + 2, 1, TFT20.rgb(80, 80, 80))
 
         // Y축 Min / Max 표시
-        TFT20.drawRectangle(gx + 2, areaTop, 24, 16, TFT20.black())
-        TFT20.drawRectangle(gx + 2, bottom - 12, 24, 16, TFT20.black())
+        TFT20.drawRectangle(gx + 2, areaTop, 28, 16, TFT20.black())
+        TFT20.drawRectangle(gx + 2, bottom - 12, 28, 16, TFT20.black())
         TFTFont.drawText5x7(gx + 2, areaTop, formatNum(plotMax), 2, TFT20.yellow(), TFT20.black())
         TFTFont.drawText5x7(gx + 2, bottom - 12, formatNum(plotMin), 2, TFT20.yellow(), TFT20.black())
 
-        // X축 시간 표시 (크기 2)
+        // X축 시간 표시
         let midX = idiv(left + right, 2)
         let endSec = _useWindowSec ? _windowSec : idiv(_windowMs, 1000)
 
