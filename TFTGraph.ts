@@ -29,7 +29,7 @@ namespace TFTGraph {
     export const STATUS_H = 26
 
     let margin = 8
-    let infoW = 80   // 기존보다 약 한 글자 정도 축소
+    let infoW = 100   // 기존보다 약 한 글자 정도 축소
     let gap = 10
 
     let gx = 0
@@ -80,7 +80,7 @@ namespace TFTGraph {
 
     function getPlotLeft(): number {
         // Y축 숫자 영역을 넉넉히 확보
-        return gx + 52
+        return gx + 64
     }
 
     function getPlotRight(): number {
