@@ -29,7 +29,7 @@ namespace TFTGraph {
     export const STATUS_H = 26
 
     let margin = 8
-    let infoW = 116
+    let infoW = 104   // 기존보다 약 한 글자 정도 축소
     let gap = 10
 
     let gx = 0
@@ -79,7 +79,8 @@ namespace TFTGraph {
     }
 
     function getPlotLeft(): number {
-        return gx + 30
+        // Y축 숫자 영역을 넉넉히 확보
+        return gx + 52
     }
 
     function getPlotRight(): number {
@@ -273,7 +274,6 @@ namespace TFTGraph {
     }
 
     function updateCore(v1: number, v2: number) {
-        // 부드럽게 처리
         if (!fInit) {
             f1 = v1
             f2 = v2
@@ -494,9 +494,9 @@ namespace TFTGraph {
         // X축
         TFT20.drawRectangle(left - 1, bottom + 2, right - left + 2, 1, TFT20.rgb(80, 80, 80))
 
-        // Y축 Min / Max 표시
-        TFT20.drawRectangle(gx + 2, areaTop, 28, 16, TFT20.black())
-        TFT20.drawRectangle(gx + 2, bottom - 12, 28, 16, TFT20.black())
+        // Y축 Min / Max 표시 영역 확장
+        TFT20.drawRectangle(gx + 2, areaTop, 50, 16, TFT20.black())
+        TFT20.drawRectangle(gx + 2, bottom - 12, 50, 16, TFT20.black())
         TFTFont.drawText5x7(gx + 2, areaTop, formatNum(plotMax), 2, TFT20.yellow(), TFT20.black())
         TFTFont.drawText5x7(gx + 2, bottom - 12, formatNum(plotMin), 2, TFT20.yellow(), TFT20.black())
 
